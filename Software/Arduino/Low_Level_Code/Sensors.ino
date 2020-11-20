@@ -15,6 +15,7 @@
 #define RIGHT_THRESH 980
 
 // Colour Sensor
+
 #define COL_RED 3
 #define COL_BLUE 4
 #define COL_LDR A0
@@ -22,16 +23,20 @@
 #define COL_THRESH 20 //min difference between colours to define a detection
 
 // Distance Sensor
+
 #define DIST_TRIG 8
 #define DIST_ECHO 11
 
 // Photointerruptors
+
 #define INT_1 2
 #define INT_2 1
 
 
 
-
+/**
+ * Run all setup required for sensors
+ */
 void setupSensors(){
     pinMode(GO_BUTTON, INPUT_PULLUP);
 
@@ -51,6 +56,9 @@ void setupSensors(){
     pinMode(INT_2, INPUT);
 }
 
+/**
+ * Run a debug test of the sensors
+ */
 void testSensors(){
     Serial.println("==========Testing Sensors=========");
 
@@ -77,13 +85,31 @@ void testSensors(){
         Serial.println("Neither colour");
     }
 
+    Serial.print("Distance Sensor: ");
+    Serial.println(readDist());
+
     Serial.print("Photointerrupter 1: ");
     Serial.println(digitalRead(INT_1));
     Serial.print("Photointerrupter 2: ");
     Serial.println(digitalRead(INT_2));
+
+    /*
+    Serial.print(analogRead(LINE_LEFT));
+    Serial.print(", ");
+    Serial.print(analogRead(LINE_MID_LEFT));
+    Serial.print(", ");
+    Serial.print(analogRead(LINE_MID_RIGHT));
+    Serial.print(", ");
+    Serial.println(analogRead(LINE_RIGHT));
+    */
 }
 
 
+/**
+ * Read the colour measured by the colour sensor
+ * 
+ * @returns 0 for Red, 1 for Blue, -1 for neither/indeterminable
+ */
 int readColour(){
   digitalWrite(COL_RED, HIGH);
   delay(COL_DELAY);
@@ -105,14 +131,56 @@ int readColour(){
   return -1; // Neither
 }
 
-void readLine()
+/**
+ * Read a line sensor
+ * 
+ * @param sensor Number of the line sensor to read:
+ *              0: Far left
+ *              1: Mid left
+ *              2: Mid right
+ *              3: Far right
+ * 
+ * @return True if 'sensor' sees white, otherwise false, false if 'sensor' isn't valid 
+ */ 
+bool readLine(int sensor){
+    if (num == 0){
+        return analogRead(LINE_LEFT) < LEFT_THRESH;
+    }
+    else if (num == 1){
+        return analogRead(LINE_MID_LEFT) < MID_LEFT_THRESH;
+    }
+    else if (num == 2){
+        return analogRead(LINE_MID_RIGHT) < MID_RIGHT_THRESH;
+    }
+    else if (num == 3){
+        return analogRead(LINE_RIGHT) < RIGHT_THRESH;
+    }
+    return false;
+}
 
-/*
-  Serial.print(analogRead(LINE_LEFT));
-  Serial.print(", ");
-  Serial.print(analogRead(LINE_MID_LEFT));
-  Serial.print(", ");
-  Serial.print(analogRead(LINE_MID_RIGHT));
-  Serial.print(", ");
-  Serial.println(analogRead(LINE_RIGHT));
-*/
+/**
+ * Read the distance sensor.
+ * 
+ * @returns Distance in cm between 2 and 450cm, otherwise -1
+ */
+int readDist(){
+    // defines variables
+    long duration; // variable for the duration of sound wave travel
+    int distance; // variable for the distance measurement
+
+    // Clears the trigPin condition
+    digitalWrite(DIST_TRIG, LOW);
+    delayMicroseconds(2);
+    // Sets the trigPin HIGH (ACTIVE) for 10 microseconds
+    digitalWrite(DIST_TRIG, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(DIST_TRIG, LOW);
+    // Reads the echoPin, returns the sound wave travel time in microseconds
+    duration = pulseIn(DIST_ECHO, HIGH);
+    // Calculating the distance
+    distance = duration * 0.034 / 2; // Speed of sound wave divided by 2 (go and back)
+    if (distance > 450 || distance < 2){
+        return -1;
+    }
+    return distance;
+}
