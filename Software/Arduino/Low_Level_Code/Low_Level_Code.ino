@@ -1,12 +1,3 @@
-#define LINE_LEFT A2
-#define LINE_MID_LEFT A1
-#define LINE_MID_RIGHT A3
-#define LINE_RIGHT A4
-
-#define THRESHOLD 950
-
-#define GO_BUTTON 0
-
 void setup() {
 
   Serial.begin(9600);

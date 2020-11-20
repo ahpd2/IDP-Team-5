@@ -3,14 +3,16 @@
 #define GO_BUTTON 0
 
 // Line Sensors
-/*
-#define LINE_LEFT A1
-#define LINE_MID_LEFT A2
+
+#define LINE_LEFT A2
+#define LINE_MID_LEFT A1
 #define LINE_MID_RIGHT A3
 #define LINE_RIGHT A4
 
-#define THRESHOLD 950
-*/
+#define LEFT_THRESH 800
+#define MID_LEFT_THRESH 950
+#define MID_RIGHT_THRESH 930
+#define RIGHT_THRESH 980
 
 // Colour Sensor
 #define COL_RED 3
@@ -103,7 +105,7 @@ int readColour(){
   return -1; // Neither
 }
 
-
+void readLine()
 
 /*
   Serial.print(analogRead(LINE_LEFT));
