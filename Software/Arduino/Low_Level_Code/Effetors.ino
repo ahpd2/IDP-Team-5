@@ -77,8 +77,8 @@ void testEffectors(){
     digitalWrite(LED_RED, LOW);
 }
 
-void leftAt(int speed){
-    
+void amberLED(bool val){
+    digitalWrite(LED_AMBER, val);  
 }
 
 
@@ -99,14 +99,14 @@ void moveForward(int vel){
     motorRight->run(FORWARD);
 }
 
-void moveLeft(int vel){
+void moveRight(int vel){
     motorLeft->setSpeed(vel);
     motorRight->setSpeed(vel);
     motorLeft->run(RELEASE);
     motorRight->run(FORWARD);
 }
 
-void moveRight(int vel){
+void moveLeft(int vel){
     motorLeft->setSpeed(vel);
     motorRight->setSpeed(vel);
     motorLeft->run(FORWARD);

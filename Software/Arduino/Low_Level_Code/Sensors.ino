@@ -12,7 +12,7 @@
 #define LEFT_THRESH 800
 #define MID_LEFT_THRESH 950
 #define MID_RIGHT_THRESH 930
-#define RIGHT_THRESH 980
+#define RIGHT_THRESH 990
 
 // Colour Sensor
 
@@ -93,7 +93,8 @@ void testSensors(){
     Serial.print("Photointerrupter 2: ");
     Serial.println(digitalRead(INT_2));
 
-    /*
+/*
+
     Serial.print(analogRead(LINE_LEFT));
     Serial.print(", ");
     Serial.print(analogRead(LINE_MID_LEFT));
@@ -101,7 +102,11 @@ void testSensors(){
     Serial.print(analogRead(LINE_MID_RIGHT));
     Serial.print(", ");
     Serial.println(analogRead(LINE_RIGHT));
-    */
+   */
+}
+
+bool readGo(){
+  return digitalRead(GO_BUTTON) == 0;  
 }
 
 
@@ -143,16 +148,16 @@ int readColour(){
  * @return True if 'sensor' sees white, otherwise false, false if 'sensor' isn't valid 
  */ 
 bool readLine(int sensor){
-    if (num == 0){
+    if (sensor == 0){
         return analogRead(LINE_LEFT) < LEFT_THRESH;
     }
-    else if (num == 1){
+    else if (sensor == 1){
         return analogRead(LINE_MID_LEFT) < MID_LEFT_THRESH;
     }
-    else if (num == 2){
+    else if (sensor == 2){
         return analogRead(LINE_MID_RIGHT) < MID_RIGHT_THRESH;
     }
-    else if (num == 3){
+    else if (sensor == 3){
         return analogRead(LINE_RIGHT) < RIGHT_THRESH;
     }
     return false;
