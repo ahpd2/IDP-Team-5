@@ -22,8 +22,8 @@ Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 // Adafruit_MotorShield AFMS = Adafruit_MotorShield(0x61); 
 
 // Select which 'port' M1, M2, M3 or M4. In this case, M1
-Adafruit_DCMotor *motorLeft = AFMS.getMotor(1);
-Adafruit_DCMotor *motorRight = AFMS.getMotor(2);
+Adafruit_DCMotor *motorLeft = AFMS.getMotor(2);
+Adafruit_DCMotor *motorRight = AFMS.getMotor(1);
 
 void setupEffectors(){
     grabberLeft.attach(GRABBER_LEFT);
@@ -81,6 +81,15 @@ void amberLED(bool val){
     digitalWrite(LED_AMBER, val);  
 }
 
+void blueLED(bool val){
+    digitalWrite(LED_BLUE, val);  
+}
+
+void redLED(bool val){
+    digitalWrite(LED_RED, val);  
+}
+
+
 
 void closeGrabbers(){
   grabberLeft.write(90);             
@@ -99,19 +108,35 @@ void moveForward(int vel){
     motorRight->run(FORWARD);
 }
 
-void moveRight(int vel){
+void moveLeft(int vel){
     motorLeft->setSpeed(vel);
     motorRight->setSpeed(vel);
     motorLeft->run(RELEASE);
     motorRight->run(FORWARD);
 }
 
-void moveLeft(int vel){
+void rotateLeft(int vel){
+    motorLeft->setSpeed(vel);
+    motorRight->setSpeed(vel);
+    motorLeft->run(BACKWARD);
+    motorRight->run(FORWARD);
+}
+
+void moveRight(int vel){
     motorLeft->setSpeed(vel);
     motorRight->setSpeed(vel);
     motorLeft->run(FORWARD);
     motorRight->run(RELEASE);
 }
+
+
+void rotateRight(int vel){
+    motorLeft->setSpeed(vel);
+    motorRight->setSpeed(vel);
+    motorLeft->run(FORWARD);
+    motorRight->run(BACKWARD);
+}
+
 
 void moveBackward(int vel){
     motorLeft->setSpeed(vel);
@@ -123,4 +148,20 @@ void moveBackward(int vel){
 void moveStop(){
     motorLeft->run(RELEASE);
     motorRight->run(RELEASE);  
+}
+
+void turnLeft(){
+  moveForward(200);
+  delay(400);  
+  rotateLeft(255);
+  delay(1400);
+  moveStop();  
+}
+
+void turnRight(){
+  moveForward(200);
+  delay(400);  
+  rotateRight(255);
+  delay(1400);
+  moveStop();  
 }

@@ -86,7 +86,7 @@ void testSensors(){
     }
 
     Serial.print("Distance Sensor: ");
-    Serial.println(readDist());
+    Serial.println(readDist(5));
 
     Serial.print("Photointerrupter 1: ");
     Serial.println(digitalRead(INT_1));
@@ -168,7 +168,7 @@ bool readLine(int sensor){
  * 
  * @returns Distance in cm between 2 and 450cm, otherwise -1
  */
-int readDist(){
+int readDistOnce(){
     // defines variables
     long duration; // variable for the duration of sound wave travel
     int distance; // variable for the distance measurement
@@ -184,8 +184,26 @@ int readDist(){
     duration = pulseIn(DIST_ECHO, HIGH);
     // Calculating the distance
     distance = duration * 0.034 / 2; // Speed of sound wave divided by 2 (go and back)
-    if (distance > 450 || distance < 2){
+    if (distance >  100 || distance < 2){
         return -1;
     }
     return distance;
+}
+
+int readDist(int repetitions){
+  int tot = 0;
+  int count = 0;
+  int d;
+  for (int i = 0; i < repetitions; i++){
+    d = readDistOnce();
+    
+    if (d > 0) {
+      tot += d;  
+      count++;
+    }
+  }
+  if (count == 0){
+    return -1;  
+  }
+  return tot/count;
 }

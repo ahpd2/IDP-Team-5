@@ -25,22 +25,19 @@ void loop() {
         farLeft = readLine(0);
         farRight = readLine(3);
         
-        if (left && right && farLeft && farRight){
-          Serial.println("Skeet");
-          Serial.println("My Meat");
-          moveStop();
-          amberLED(HIGH);
-          delay(3000);
-          moveLeft(255);
-          delay(1000);  
+        if (farLeft && left && !farRight){
+          blueLED(HIGH);
+          turnLeft();
+          blueLED(LOW);
         }
-        else if (farLeft && farRight == false){
-          if (right){
-            moveLeft(200);
+        if (left == true && right == true){
+          if (farLeft == true && farRight == true){
+            amberLED(HIGH);            
+            turnLeft();
+            amberLED(LOW);
           }
-          else{
-            moveForward(200);
-            delay(1000);
+          else if (farLeft == false && farRight == false){
+             moveForward(200);
           }
         }
         else if (left){
@@ -63,13 +60,31 @@ void loop() {
           go = false;
         }
         */
+        /*if (readDist < ){
+          moveBackward(200);
+          delay(700);
+          turnLeft();
+          moveForward(200);
+          delay(2000);
+          turnRight();
+          moveForward(200);
+          delay(3000);
+          turnRight();
+          moveForward(200);
+          delay(2000);
+          turnLeft();
+          delay(500);  
+        }
+        */
+
+        
         
       }
       else{
-        Serial.println("Readings:");
-        Serial.println(readLine(0));
-        Serial.println(readLine(1));
-        Serial.println(readLine(2));
-        Serial.println(readLine(3));
+        int x = readDist(5);
+        if (x > 0){
+          Serial.println();
+        }
+        delay(10);
       }
 }
