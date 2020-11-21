@@ -78,6 +78,86 @@ void loop() {
         */
 
         
+        //move forward around line
+        
+        if (readColour() != -1){
+          stopMotors();
+          closeGrabbers();
+          if (readColour() == 1){
+            if (//before halfway){
+              turnAround();
+              //go back to junction
+            }
+            else{
+              //go forward to junction
+            }
+          blue_blocks_delivered += 1;
+          }
+          if (readColour() == 0){
+            if (//before halfway){
+              if (//FIRST delivery taken){
+                //take shortest path to second point following line
+              }
+              else{
+                if (//going clockwise){
+                  //go forward and deliver to first point
+                }
+                else{
+                  turnAround();
+                  //deliver to first point
+                }
+              }
+            }    
+            else{
+              if (//after second delivery point){
+                if (//second delivery point taken){
+                  if (//going anti clockwise){
+                    //go forward, deliver to first point
+                  }
+                  else{
+                    turnAround();
+                    //deliver to first point
+                  }
+                }
+                else{
+                  if (//going anit clockwise){
+                    //go forward to second delivery point
+                  }
+                  else{
+                    turnAround(); 
+                    //deliver to second point
+                  }
+                }
+              }
+              else{
+                if (//second delivery point taken){
+                  if (//going clockwise){
+                    turnAround();
+                    //deliver to first point
+                  }
+                  else{
+                    //deliver to first point
+                  }
+                }
+                else{
+                  if (//going clockwise){
+                    //deliver to second point
+                  }
+                  else{
+                    turnAround();
+                    //deliver to second point
+                  }
+                }
+              }
+            }
+            red_blocks_delivered += 1;
+          }
+        }
+      
+      }
+      
+
+        
         
       }
       else{

@@ -165,3 +165,9 @@ void turnRight(){
   delay(1400);
   moveStop();  
 }
+
+void turnAround(){ 
+  rotateRight(255);
+  delay(2800);
+  moveStop();  
+}
