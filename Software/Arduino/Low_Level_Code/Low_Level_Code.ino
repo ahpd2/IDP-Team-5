@@ -30,6 +30,20 @@ void loop() {
           turnLeft();
           blueLED(LOW);
         }
+        /*if (farRight && Right && !farLeft){
+          blueLED(HIGH);
+          turnRight();
+          blueLED(LOW);
+          if (carryingBlue){
+            moveForward(200);
+            delay(5000);
+            moveStop();
+            openGrabbers();
+            moveBackward(200);
+            delay(1000);
+            turnAround();
+            moveForward(200);  
+        }*/
         if (left == true && right == true){
           if (farLeft == true && farRight == true){
             amberLED(HIGH);            
@@ -37,7 +51,17 @@ void loop() {
             amberLED(LOW);
           }
           else if (farLeft == false && farRight == false){
-             moveForward(200);
+             /*moveForward(200);
+             if (carryingRed){
+              if (redBlocksDelivered = 1){
+                moveAroundObject();
+              moveForward(200);
+              delay(500);
+              openGrabbers();
+              moveBackward(200);
+              delay(500);
+              moveAroundObject();
+             */
           }
         }
         else if (left){
@@ -50,14 +74,27 @@ void loop() {
           moveForward(200);  
         }
         
-        /*
-        int col = readColour();
+        
+        /*int col = readColour();
         if (col != -1){
           Serial.print(col);
           motorLeft->run(RELEASE);
           motorRight->run(RELEASE);
-          closeGrabbers();
-          go = false;
+          if (red_blocks_delivered < 2 %% blue_blocks_delivered < 2){
+            closeGrabbers();
+            go = false;
+            if (readColour() = blue){
+              // blueDeliveryJunction();
+              carryingBlue = True;
+              turnAround();
+              moveForward(200);
+            }
+            else if (readColour() = red){
+              // redDelivery();
+              carryingRed = True;
+              
+            }
+          }
         }
         */
         /*if (readDist < ){
