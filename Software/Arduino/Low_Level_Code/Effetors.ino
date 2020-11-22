@@ -171,3 +171,35 @@ void turnAround(){
   delay(2800);
   moveStop();  
 }
+
+void moveAroundAntiClockwise(){
+  moveBackward(200);
+  delay(700);
+  turnLeft();
+  moveForward(200);
+  delay(2000);
+  turnRight();
+  moveForward(200);
+  delay(3000);
+  turnRight();
+  moveForward(200);
+  delay(2000);
+  turnLeft();
+  delay(500); 
+}
+
+void moveAroundClockwise(){
+  moveBackward(200);
+  delay(700);
+  turnRight();
+  moveForward(200);
+  delay(2000);
+  turnLeft();
+  moveForward(200);
+  delay(3000);
+  turnLeft();
+  moveForward(200);
+  delay(2000);
+  turnRight();
+  delay(500); 
+}

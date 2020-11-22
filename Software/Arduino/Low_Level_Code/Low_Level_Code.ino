@@ -1,5 +1,5 @@
-void setup() {
 
+void setup() {
   Serial.begin(9600);
   // put your setup code here, to run once:
   
@@ -20,49 +20,71 @@ void loop() {
       }
       if (go){
         bool left, right, farLeft, farRight;
+        bool carryingRed = false;
+        bool carryingBlue = false;
+        int red_blocks_delivered = 0;
+        int blue_blocks_tunnel = 0;
         left = readLine(1);
         right = readLine(2);
         farLeft = readLine(0);
         farRight = readLine(3);
         
-        if (farLeft && left && !farRight){
-          blueLED(HIGH);
-          turnLeft();
-          blueLED(LOW);
+        if (readDist < 12){
+          if (carryingBlue){
+            moveAroundAntiClockwise();
+          }
+          else if (carryingRed){
+            moveAroundClockwise();
+          }
         }
-        /*if (farRight && Right && !farLeft){
-          blueLED(HIGH);
+
+        if (farLeft && left && !farRight){
+          if (red_blocks_delivered == 2 && blue_blocks_tunnel == 2){
+            turnLeft();
+          }
+          else{
+            moveForward(200);
+            delay(1000);
+          }
+        }
+        if (farRight && right && !farLeft){
           turnRight();
-          blueLED(LOW);
           if (carryingBlue){
             moveForward(200);
-            delay(5000);
+            delay(2000);
             moveStop();
             openGrabbers();
+            blue_blocks_tunnel += 1;
+            carryingBlue = false;
+            blueLED(LOW);
             moveBackward(200);
             delay(1000);
             turnAround();
-            moveForward(200);  
-        }*/
+            moveForward(200);
+          } 
+        }
         if (left == true && right == true){
-          if (farLeft == true && farRight == true){
-            amberLED(HIGH);            
+          if (farLeft == true && farRight == true){        
             turnLeft();
-            amberLED(LOW);
           }
           else if (farLeft == false && farRight == false){
-             /*moveForward(200);
              if (carryingRed){
-              if (redBlocksDelivered = 1){
-                moveAroundObject();
-              moveForward(200);
-              delay(500);
-              openGrabbers();
+              moveStop();
               moveBackward(200);
               delay(500);
-              moveAroundObject();
-             */
-          }
+              openGrabbers();
+              redLED(LOW);
+              red_blocks_delivered += 1;
+              carryingRed = false;
+              moveBackward(200);
+              delay(500);
+              moveAroundClockwise();
+             }
+             else{
+              moveForward(200);
+              delay(400);
+             }
+           }
         }
         else if (left){
           moveLeft(200); 
@@ -75,48 +97,36 @@ void loop() {
         }
         
         
-        /*int col = readColour();
-        if (col != -1){
-          Serial.print(col);
-          motorLeft->run(RELEASE);
-          motorRight->run(RELEASE);
-          if (red_blocks_delivered < 2 %% blue_blocks_delivered < 2){
-            closeGrabbers();
-            go = false;
-            if (readColour() = blue){
-              // blueDeliveryJunction();
-              carryingBlue = True;
+        int col = readColour();
+        if (carryingBlue == false && carryingRed == false){
+          if (col != -1){
+            Serial.print(col);
+            moveStop();
+            if (readColour() == 0){
+              closeGrabbers();
+              blueLED(HIGH);
+              carryingBlue = true;
               turnAround();
-              moveForward(200);
             }
-            else if (readColour() = red){
-              // redDelivery();
-              carryingRed = True;
-              
+            else if (readColour() == 1){ 
+              if (red_blocks_delivered < 2){
+                closeGrabbers();
+                redLED(HIGH);
+                carryingRed = true;
+              }
+              else {
+                moveBackward(200);
+                delay(500);
+                moveAroundClockwise();
+              }
             }
+           }
           }
-        }
-        */
-        /*if (readDist < ){
-          moveBackward(200);
-          delay(700);
-          turnLeft();
-          moveForward(200);
-          delay(2000);
-          turnRight();
-          moveForward(200);
-          delay(3000);
-          turnRight();
-          moveForward(200);
-          delay(2000);
-          turnLeft();
-          delay(500);  
-        }
-        */
+        
 
         
         //move forward around line
-        
+        /*
         if (readColour() != -1){
           stopMotors();
           closeGrabbers();
@@ -192,7 +202,7 @@ void loop() {
         }
       
       }
-      
+      */
 
         
         
@@ -205,5 +215,3 @@ void loop() {
         delay(10);
       }
 }
-//zowwo
-//Testing123
