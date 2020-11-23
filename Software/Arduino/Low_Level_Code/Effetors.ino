@@ -174,28 +174,34 @@ void turnAround(){
 
 void moveAroundAntiClockwise(){
   turnLeft();
-  moveForward(200);
-  delay(2000);
-  turnRight();
-  moveForward(200);
-  delay(3000);
-  turnRight();
-  moveForward(200);
-  delay(2000);
-  turnLeft();
-  delay(500); 
+  motorLeft->setSpeed(200);
+  motorRight->setSpeed(100);
+  motorLeft->run(FORWARD);
+  motorRight->run(FORWARD);
+  delay(300);
+  if (readLine(1) == false){
+    motorLeft->run(FORWARD);
+    motorRight->run(FORWARD);
+  }
+  else{
+    turnRight();
+    moveStop();
+  }
 }
 
 void moveAroundClockwise(){
   turnRight();
-  moveForward(200);
-  delay(2000);
-  turnLeft();
-  moveForward(200);
-  delay(3000);
-  turnLeft();
-  moveForward(200);
-  delay(2000);
-  turnRight();
-  delay(500); 
+  motorLeft->setSpeed(100);
+  motorRight->setSpeed(200);
+  motorLeft->run(FORWARD);
+  motorRight->run(FORWARD);
+  delay(300);
+  if (readLine(2) == false){
+    motorLeft->run(FORWARD);
+    motorRight->run(FORWARD);
+  }
+  else{
+    turnRight();
+    moveStop();
+  }
 }
