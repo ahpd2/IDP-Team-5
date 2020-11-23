@@ -9,10 +9,10 @@
 #define LINE_MID_RIGHT A3
 #define LINE_RIGHT A4
 
-#define LEFT_THRESH 800
-#define MID_LEFT_THRESH 950
-#define MID_RIGHT_THRESH 930
-#define RIGHT_THRESH 990
+#define LEFT_THRESH 900
+#define MID_LEFT_THRESH 980
+#define MID_RIGHT_THRESH 900
+#define RIGHT_THRESH 980
 
 // Colour Sensor
 
@@ -181,7 +181,7 @@ int readDistOnce(){
     delayMicroseconds(10);
     digitalWrite(DIST_TRIG, LOW);
     // Reads the echoPin, returns the sound wave travel time in microseconds
-    duration = pulseIn(DIST_ECHO, HIGH);
+    duration = pulseIn(DIST_ECHO, HIGH, 2000);
     // Calculating the distance
     distance = duration * 0.034 / 2; // Speed of sound wave divided by 2 (go and back)
     if (distance >  100 || distance < 2){
