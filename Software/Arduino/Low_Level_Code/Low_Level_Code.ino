@@ -12,7 +12,6 @@ void setup()
 
 void customDelay(unsigned long t)
 {
-    Serial.println("d");
     unsigned long startT = millis();
     while (millis() < startT + t)
     {
@@ -84,28 +83,27 @@ void loop()
         Serial.println(t - last);
         last = t;
 
-        /*
-        if (readDist(3) < 5 && readDist(3) > 2) // If block infront
-        {
-            // TODO: Double check object infront.
-            moveStop();
-            if (readDist(20) < 5 && readDist(20) > 2)
+        int dist = readDist(3);
+        if (carryingRed || carryingBlue){
+            if (dist < 9 && dist > 3) // If block infront
             {
-              if (carryingBlue)
-              {
-                  moveAroundAntiClockwise();
-              }
-              else if (carryingRed)
-              {
-                  moveAroundClockwise();
-              }
-              else
-              {
-                  moveAroundClockwise();
-              }
+                // TODO: Double check object infront.
+                moveStop();
+                dist = readDist(20);
+                if (dist < 9 && dist > 3)
+                {
+                  if (carryingBlue)
+                  {
+                      moveAroundAntiClockwise();
+                  }
+                  else
+                  {
+                      moveAroundClockwise();
+                  }
+                }
             }
         }
-        */
+        
 
         if (farLeft && left && !farRight) // Reaches T juction turning left.
         {
@@ -148,6 +146,7 @@ void loop()
                   turnAround();
                   moveStop();
                   go = !go;
+                  isFlashing = false;
                 }
                 else //otherwise will be at T junction coming into oval, or at blue delivery so turn left
                 {
@@ -304,6 +303,7 @@ void loop()
     }
     else // if not moving, debug print line followers
     {
+        
         Serial.print(analogRead(A2));
         Serial.print(", ");
         Serial.print(analogRead(A1));
@@ -311,5 +311,19 @@ void loop()
         Serial.print(analogRead(A3));
         Serial.print(", ");
         Serial.println(analogRead(A4));
+        /*
+        Serial.print(readLine(1));
+        Serial.print(", ");
+        Serial.print(readLine(2));
+        Serial.print(", ");
+        Serial.print(readLine(0));
+        Serial.print(", ");
+        Serial.print(readLine(3));
+        Serial.print(", ");
+        Serial.println(readColour());
+       Serial.print("distance: ");
+       Serial.println(readDist(10));
+       delay(20);
+       */
     }
 }

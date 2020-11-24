@@ -10,9 +10,9 @@
 #define LINE_RIGHT A4
 
 #define LEFT_THRESH 900
-#define MID_LEFT_THRESH 980
-#define MID_RIGHT_THRESH 900
-#define RIGHT_THRESH 980
+#define MID_LEFT_THRESH 920
+#define MID_RIGHT_THRESH 920
+#define RIGHT_THRESH 990
 
 // Colour Sensor
 

@@ -166,7 +166,7 @@ void turnLeft()
     moveForward(200);
     delay(400);
     rotateLeft(255);
-    delay(1400);
+    delay(1600);
     moveStop();
 }
 
@@ -175,7 +175,7 @@ void turnRight()
     moveForward(200);
     delay(400);
     rotateRight(255);
-    delay(1400);
+    delay(1600);
     moveStop();
 }
 
@@ -189,37 +189,41 @@ void turnAround()
 void moveAroundAntiClockwise()
 {
     turnLeft();
+    moveForward(200);
+    delay(300);
     // Move in an arc until it hits the line
     motorLeft->setSpeed(200);
-    motorRight->setSpeed(100);
+    motorRight->setSpeed(50);
     motorLeft->run(FORWARD);
     motorRight->run(FORWARD);
     delay(300);
-    for (int x = 0; x < 1000; x++)
+    for (int x = 0; x < 1150; x++)
     { // If no line is hit after 10 seconds stop anyway
         if (readLine(2)) // Hit line
             break;
         delay(10);
     }
-    turnRight();
+    turnLeft();
     moveStop();
 }
 
 void moveAroundClockwise()
 {
     turnRight();
+    moveForward(200);
+    delay(300);
     // Move in an arc until it hits the line
-    motorLeft->setSpeed(100);
+    motorLeft->setSpeed(50);
     motorRight->setSpeed(200);
     motorLeft->run(FORWARD);
     motorRight->run(FORWARD);
     delay(300);
-    for (int x = 0; x < 1000; x++)
+    for (int x = 0; x < 1150; x++)
     { // If no line is hit after 10 seconds stop anyway
         if (readLine(1)) // Hit line
             break;
         delay(10);
     }
-    turnLeft();
+    turnRight();
     moveStop();
 }
