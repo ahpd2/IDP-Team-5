@@ -117,7 +117,9 @@ void loop()
                 {
                   moveForward(200);
                   delay(500);
+                  turnAround();
                   moveStop();
+                  go = !go;
                 }
                 else //otherwise will be at T junction coming into oval, or at blue delivery so turn left
                 {
