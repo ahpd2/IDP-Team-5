@@ -2,6 +2,7 @@
 
 #include <Wire.h>
 #include <Adafruit_MotorShield.h>
+#include <Sensors.ino>
 
 // Ouptut LEDS
 #define LED_AMBER 7
@@ -13,19 +14,20 @@
 #define GRABBER_RIGHT 9
 
 // define the servos for the grabber
-Servo grabberLeft; 
+Servo grabberLeft;
 Servo grabberRight;
 
 // Create the motor shield object with the default I2C address
-Adafruit_MotorShield AFMS = Adafruit_MotorShield(); 
+Adafruit_MotorShield AFMS = Adafruit_MotorShield();
 // Or, create it with a different I2C address (say for stacking)
-// Adafruit_MotorShield AFMS = Adafruit_MotorShield(0x61); 
+// Adafruit_MotorShield AFMS = Adafruit_MotorShield(0x61);
 
 // Select which 'port' M1, M2, M3 or M4. In this case, M1
 Adafruit_DCMotor *motorLeft = AFMS.getMotor(2);
 Adafruit_DCMotor *motorRight = AFMS.getMotor(1);
 
-void setupEffectors(){
+void setupEffectors()
+{
     grabberLeft.attach(GRABBER_LEFT);
     grabberRight.attach(GRABBER_RIGHT);
     AFMS.begin();
@@ -36,10 +38,10 @@ void setupEffectors(){
     pinMode(LED_AMBER, OUTPUT);
     pinMode(LED_RED, OUTPUT);
     pinMode(LED_BLUE, OUTPUT);
-
 }
 
-void testEffectors(){
+void testEffectors()
+{
     Serial.println("======TESTING EFFECTORS=======");
     Serial.println("Testing Servos");
     closeGrabbers();
@@ -77,131 +79,146 @@ void testEffectors(){
     digitalWrite(LED_RED, LOW);
 }
 
-void amberLED(bool val){
-    digitalWrite(LED_AMBER, val);  
+void amberLED(bool val)
+{
+    digitalWrite(LED_AMBER, val);
 }
 
-void blueLED(bool val){
-    digitalWrite(LED_BLUE, val);  
+void blueLED(bool val)
+{
+    digitalWrite(LED_BLUE, val);
 }
 
-void redLED(bool val){
-    digitalWrite(LED_RED, val);  
+void redLED(bool val)
+{
+    digitalWrite(LED_RED, val);
 }
 
-
-
-void closeGrabbers(){
-  grabberLeft.write(90);             
-  grabberRight.write(60);          
+void closeGrabbers()
+{
+    grabberLeft.write(90);
+    grabberRight.write(60);
 }
 
-void openGrabbers(){
-  grabberLeft.write(60);             
-  grabberRight.write(90);          
+void openGrabbers()
+{
+    grabberLeft.write(60);
+    grabberRight.write(90);
 }
 
-void moveForward(int vel){
+void moveForward(int vel)
+{
     motorLeft->setSpeed(vel);
     motorRight->setSpeed(vel);
     motorLeft->run(FORWARD);
     motorRight->run(FORWARD);
 }
 
-void moveLeft(int vel){
+void moveLeft(int vel)
+{
     motorLeft->setSpeed(vel);
     motorRight->setSpeed(vel);
     motorLeft->run(RELEASE);
     motorRight->run(FORWARD);
 }
 
-void rotateLeft(int vel){
+void rotateLeft(int vel)
+{
     motorLeft->setSpeed(vel);
     motorRight->setSpeed(vel);
     motorLeft->run(BACKWARD);
     motorRight->run(FORWARD);
 }
 
-void moveRight(int vel){
+void moveRight(int vel)
+{
     motorLeft->setSpeed(vel);
     motorRight->setSpeed(vel);
     motorLeft->run(FORWARD);
     motorRight->run(RELEASE);
 }
 
-
-void rotateRight(int vel){
+void rotateRight(int vel)
+{
     motorLeft->setSpeed(vel);
     motorRight->setSpeed(vel);
     motorLeft->run(FORWARD);
     motorRight->run(BACKWARD);
 }
 
-
-void moveBackward(int vel){
+void moveBackward(int vel)
+{
     motorLeft->setSpeed(vel);
     motorRight->setSpeed(vel);
     motorLeft->run(BACKWARD);
     motorRight->run(BACKWARD);
 }
 
-void moveStop(){
+void moveStop()
+{
     motorLeft->run(RELEASE);
-    motorRight->run(RELEASE);  
+    motorRight->run(RELEASE);
 }
 
-void turnLeft(){
-  moveForward(200);
-  delay(400);  
-  rotateLeft(255);
-  delay(1400);
-  moveStop();  
+void turnLeft()
+{
+    moveForward(200);
+    delay(400);
+    rotateLeft(255);
+    delay(1400);
+    moveStop();
 }
 
-void turnRight(){
-  moveForward(200);
-  delay(400);  
-  rotateRight(255);
-  delay(1400);
-  moveStop();  
+void turnRight()
+{
+    moveForward(200);
+    delay(400);
+    rotateRight(255);
+    delay(1400);
+    moveStop();
 }
 
-void turnAround(){ 
-  rotateRight(255);
-  delay(2800);
-  moveStop();  
+void turnAround()
+{
+    rotateRight(255);
+    delay(2800);
+    moveStop();
 }
 
-void moveAroundAntiClockwise(){
-  turnLeft();
-  motorLeft->setSpeed(200);
-  motorRight->setSpeed(100);
-  motorLeft->run(FORWARD);
-  motorRight->run(FORWARD);
-  delay(300);
-  if (readLine(1) == false){
+void moveAroundAntiClockwise()
+{
+    turnLeft();
+    motorLeft->setSpeed(200);
+    motorRight->setSpeed(100);
     motorLeft->run(FORWARD);
     motorRight->run(FORWARD);
-  }
-  else{
-    turnRight();
-    moveStop();
-  }
+    delay(300);
+    if (readLine(1) == false)
+    {
+        motorLeft->run(FORWARD);
+        motorRight->run(FORWARD);
+    }
+    else
+    {
+        turnRight();
+        moveStop();
+    }
 }
 
-void moveAroundClockwise(){
-  turnRight();
-  motorLeft->setSpeed(100);
-  motorRight->setSpeed(200);
-  motorLeft->run(FORWARD);
-  motorRight->run(FORWARD);
-  delay(300);
-  if (readLine(2) == false){
+void moveAroundClockwise()
+{
+    turnRight();
+    // Move in an arc until it hits the line
+    motorLeft->setSpeed(100);
+    motorRight->setSpeed(200);
     motorLeft->run(FORWARD);
     motorRight->run(FORWARD);
-  }
-  else{
+    delay(300);
+    for (int x = 0; x < 1000; x++){ // If no line is hit after 10 seconds stop anyway
+        if (readLine(2)) // Hit line
+            break;
+        delay(10);
+    }
     turnRight();
     moveStop();
-  }
 }

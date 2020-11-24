@@ -19,7 +19,7 @@
 #define COL_RED 3
 #define COL_BLUE 4
 #define COL_LDR A0
-#define COL_DELAY 5 //in ms
+#define COL_DELAY 5   //in ms
 #define COL_THRESH 20 //min difference between colours to define a detection
 
 // Distance Sensor
@@ -32,18 +32,17 @@
 #define INT_1 2
 #define INT_2 1
 
-
-
 /**
  * Run all setup required for sensors
  */
-void setupSensors(){
+void setupSensors()
+{
     pinMode(GO_BUTTON, INPUT_PULLUP);
 
     pinMode(LINE_LEFT, INPUT);
-    pinMode(LINE_MID_RIGHT, INPUT);  
+    pinMode(LINE_MID_RIGHT, INPUT);
     pinMode(LINE_MID_LEFT, INPUT);
-    pinMode(LINE_RIGHT, INPUT);  
+    pinMode(LINE_RIGHT, INPUT);
 
     pinMode(COL_RED, OUTPUT);
     pinMode(COL_BLUE, OUTPUT);
@@ -59,7 +58,8 @@ void setupSensors(){
 /**
  * Run a debug test of the sensors
  */
-void testSensors(){
+void testSensors()
+{
     Serial.println("==========Testing Sensors=========");
 
     Serial.print("Go button: ");
@@ -76,12 +76,16 @@ void testSensors(){
 
     Serial.print("Colour Sensor: ");
     int col = readColour();
-    if (col == 1){
+    if (col == 1)
+    {
         Serial.println("Red");
-    } else if (col == 0){
+    }
+    else if (col == 0)
+    {
         Serial.println("Blue");
-    } 
-    else {
+    }
+    else
+    {
         Serial.println("Neither colour");
     }
 
@@ -93,7 +97,7 @@ void testSensors(){
     Serial.print("Photointerrupter 2: ");
     Serial.println(digitalRead(INT_2));
 
-/*
+    /*
 
     Serial.print(analogRead(LINE_LEFT));
     Serial.print(", ");
@@ -105,35 +109,38 @@ void testSensors(){
    */
 }
 
-bool readGo(){
-  return digitalRead(GO_BUTTON) == 0;  
+bool readGo()
+{
+    return digitalRead(GO_BUTTON) == 0;
 }
-
 
 /**
  * Read the colour measured by the colour sensor
  * 
  * @returns 0 for Red, 1 for Blue, -1 for neither/indeterminable
  */
-int readColour(){
-  digitalWrite(COL_RED, HIGH);
-  delay(COL_DELAY);
-  int red = analogRead(COL_LDR);
-  digitalWrite(COL_RED, LOW);
-  digitalWrite(COL_BLUE, HIGH);
-  delay(COL_DELAY);
-  int blue = analogRead(COL_LDR);
-  digitalWrite(COL_BLUE, LOW);
-  //Serial.print(red);
-  //Serial.print(", ");
-  //Serial.println(blue);
-  if (red > blue + COL_THRESH){ // RED
-    return 0;  
-  }
-  if (blue > red + COL_THRESH){ // BLUE
-    return 1;  
-  }
-  return -1; // Neither
+int readColour()
+{
+    digitalWrite(COL_RED, HIGH);
+    delay(COL_DELAY);
+    int red = analogRead(COL_LDR);
+    digitalWrite(COL_RED, LOW);
+    digitalWrite(COL_BLUE, HIGH);
+    delay(COL_DELAY);
+    int blue = analogRead(COL_LDR);
+    digitalWrite(COL_BLUE, LOW);
+    //Serial.print(red);
+    //Serial.print(", ");
+    //Serial.println(blue);
+    if (red > blue + COL_THRESH)
+    { // RED
+        return 0;
+    }
+    if (blue > red + COL_THRESH)
+    { // BLUE
+        return 1;
+    }
+    return -1; // Neither
 }
 
 /**
@@ -146,18 +153,23 @@ int readColour(){
  *              3: Far right
  * 
  * @return True if 'sensor' sees white, otherwise false, false if 'sensor' isn't valid 
- */ 
-bool readLine(int sensor){
-    if (sensor == 0){
+ */
+bool readLine(int sensor)
+{
+    if (sensor == 0)
+    {
         return analogRead(LINE_LEFT) < LEFT_THRESH;
     }
-    else if (sensor == 1){
+    else if (sensor == 1)
+    {
         return analogRead(LINE_MID_LEFT) < MID_LEFT_THRESH;
     }
-    else if (sensor == 2){
+    else if (sensor == 2)
+    {
         return analogRead(LINE_MID_RIGHT) < MID_RIGHT_THRESH;
     }
-    else if (sensor == 3){
+    else if (sensor == 3)
+    {
         return analogRead(LINE_RIGHT) < RIGHT_THRESH;
     }
     return false;
@@ -168,10 +180,11 @@ bool readLine(int sensor){
  * 
  * @returns Distance in cm between 2 and 450cm, otherwise -1
  */
-int readDistOnce(){
+int readDistOnce()
+{
     // defines variables
     long duration; // variable for the duration of sound wave travel
-    int distance; // variable for the distance measurement
+    int distance;  // variable for the distance measurement
 
     // Clears the trigPin condition
     digitalWrite(DIST_TRIG, LOW);
@@ -184,26 +197,31 @@ int readDistOnce(){
     duration = pulseIn(DIST_ECHO, HIGH, 2000);
     // Calculating the distance
     distance = duration * 0.034 / 2; // Speed of sound wave divided by 2 (go and back)
-    if (distance >  100 || distance < 2){
+    if (distance > 100 || distance < 2)
+    {
         return -1;
     }
     return distance;
 }
 
-int readDist(int repetitions){
-  int tot = 0;
-  int count = 0;
-  int d;
-  for (int i = 0; i < repetitions; i++){
-    d = readDistOnce();
-    
-    if (d > 0) {
-      tot += d;  
-      count++;
+int readDist(int repetitions)
+{
+    int tot = 0;
+    int count = 0;
+    int d;
+    for (int i = 0; i < repetitions; i++)
+    {
+        d = readDistOnce();
+
+        if (d > 0)
+        {
+            tot += d;
+            count++;
+        }
     }
-  }
-  if (count == 0){
-    return -1;  
-  }
-  return tot/count;
+    if (count == 0)
+    {
+        return -1;
+    }
+    return tot / count;
 }
