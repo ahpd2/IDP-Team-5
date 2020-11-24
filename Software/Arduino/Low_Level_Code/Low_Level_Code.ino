@@ -1,7 +1,8 @@
 
-#include <Sensors.ino>
-#include <Effetors.ino>
-
+#ifdef ARDUINO and ARDUINO < 100
+  #include <Sensors.ino>
+  #include <Effetors.ino>
+#endif
 void setup()
 {
     Serial.begin(9600);
@@ -60,17 +61,21 @@ void loop()
         if (readDist(3) < 5 && readDist(3) > 2) // If block infront
         {
             // TODO: Double check object infront.
-            if (carryingBlue)
+            moveStop();
+            if (readDist(20) < 5 && readDist(20) > 2)
             {
-                moveAroundAntiClockwise();
-            }
-            else if (carryingRed)
-            {
-                moveAroundClockwise();
-            }
-            else
-            {
-                moveAroundClockwise();
+              if (carryingBlue)
+              {
+                  moveAroundAntiClockwise();
+              }
+              else if (carryingRed)
+              {
+                  moveAroundClockwise();
+              }
+              else
+              {
+                  moveAroundClockwise();
+              }
             }
         }
 
@@ -108,8 +113,16 @@ void loop()
         {
             if (farLeft == true && farRight == true) // if coming into the T for the first time or start/finish box
             {
-                // TODO: if everything delivered, keep going and then stop whole program
-                turnLeft();
+                if (red_blocks_delivered == 2 && blue_blocks_tunnel == 2)// if all blocks delivered, then move into start finish box and stop
+                {
+                  moveForward(200);
+                  delay(500);
+                  moveStop();
+                }
+                else //otherwise will be at T junction coming into oval, or at blue delivery so turn left
+                {
+                  turnLeft();
+                }
             }
             else if (farLeft == false && farRight == false) // Reached a delivery zone of split junction
             {
