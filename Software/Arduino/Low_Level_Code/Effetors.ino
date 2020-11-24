@@ -1,8 +1,7 @@
 #include <Servo.h>
-
 #include <Wire.h>
 #include <Adafruit_MotorShield.h>
-#include <Sensors.ino>
+//#include <Sensors.ino>
 
 // Ouptut LEDS
 #define LED_AMBER 7
@@ -12,6 +11,8 @@
 // Servos
 #define GRABBER_LEFT 10
 #define GRABBER_RIGHT 9
+
+#define delay(arg) customDelay(arg)
 
 // define the servos for the grabber
 Servo grabberLeft;

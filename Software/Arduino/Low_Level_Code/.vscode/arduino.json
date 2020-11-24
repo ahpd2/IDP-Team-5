@@ -1,5 +1,7 @@
 {
     "board": "arduino:megaavr:uno2018",
     "configuration": "mode=on",
-    "programmer": "AVR ISP"
+    "programmer": "AVR ISP",
+    "sketch": "Low_Level_Code.ino",
+    "port": "COM7"
 }

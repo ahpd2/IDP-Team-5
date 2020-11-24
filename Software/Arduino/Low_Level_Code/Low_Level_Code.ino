@@ -1,6 +1,5 @@
-
-#include <Sensors.ino>
-#include <Effetors.ino>
+//    #include <Sensors.ino>
+//    #include <Effetors.ino>
 
 void setup()
 {
@@ -9,8 +8,35 @@ void setup()
 
     setupSensors();
     setupEffectors();
-    amberLED(HIGH);
 }
+
+void customDelay(unsigned long t)
+{
+    Serial.println("d");
+    unsigned long startT = millis();
+    while (millis() < startT + t)
+    {
+        updateLED();
+    }
+}
+
+unsigned long lastTime = 0;
+bool amberLEDState = false;
+bool isFlashing = false;
+/**
+ * Run this as often as possible to update the flashing LED.
+ */
+void updateLED()
+{
+    if (isFlashing && millis() > 250 + lastTime)
+    {
+        amberLEDState = !amberLEDState;
+        amberLED(amberLEDState);
+        lastTime = millis();
+    }
+}
+
+#define delay(arg) customDelay(arg)
 
 int go = false;
 bool carryingRed = false;
@@ -20,19 +46,22 @@ int blue_blocks_tunnel = 0;
 int last = 0;
 void loop()
 {
+    updateLED();
     if (readGo()) // If go buttong pressed
-    { 
-        go = !go;
-        moveStop();
-        amberLED(LOW);
-        Serial.write(go);
-        delay(200);
+    {
+        go = !go; 
         if (go)
         {
-            amberLED(HIGH);
+            isFlashing = true;
             moveForward(200);
-            delay(1000);
+            delay(800);
         }
+        else {
+            moveStop();
+            isFlashing = false;
+        }
+        Serial.write(go);
+        delay(200);
     }
     if (go) // Can move
     {
@@ -41,7 +70,6 @@ void loop()
         right = readLine(2);
         farLeft = readLine(0);
         farRight = readLine(3);
-
 
         // Debug Outputs:
         Serial.print(farLeft);
@@ -56,7 +84,7 @@ void loop()
         Serial.println(t - last);
         last = t;
 
-
+        /*
         if (readDist(3) < 5 && readDist(3) > 2) // If block infront
         {
             // TODO: Double check object infront.
@@ -73,6 +101,7 @@ void loop()
                 moveAroundClockwise();
             }
         }
+        */
 
         if (farLeft && left && !farRight) // Reaches T juction turning left.
         {
