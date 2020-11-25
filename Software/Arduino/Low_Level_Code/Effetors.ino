@@ -103,8 +103,8 @@ void closeGrabbers()
 
 void openGrabbers()
 {
-    grabberLeft.write(60);
-    grabberRight.write(90);
+    grabberLeft.write(53);
+    grabberRight.write(97);
 }
 
 void moveForward(int vel)
@@ -245,8 +245,9 @@ void moveAroundClockwise()
 
 void blueGoingOverDelivery()
 {
-  motorRight->run(RELEASE);
-  motorLeft->setSpeed(200);
+  motorRight->setSpeed(40);
+  motorLeft->setSpeed(255);
   motorLeft->run(FORWARD);
-  delay(1750);
+  motorRight->run(BACKWARD);
+  delay(2100);
 }

@@ -88,12 +88,12 @@ void loop()
 
         int dist = readDist(3);
         if (carryingRed || carryingBlue){
-            if (dist < 9 && dist > 3) // If block infront
+            if (dist < 11 && dist > 3) // If block infront
             {
                 // TODO: Double check object infront.
                 moveStop();
                 dist = readDist(20);
-                if (dist < 9 && dist > 3)
+                if (dist < 11 && dist > 3)
                 {
                   if (carryingBlue)
                   {
@@ -186,7 +186,7 @@ void loop()
                       blue_blocks_delivered += 1;
                       carryingBlue = false;
                       moveBackward(200);
-                      delay(800);
+                      delay(1500);
                       turnAround();
                       overFirstBox = false;
                   }
@@ -231,6 +231,8 @@ void loop()
                 moveStop();
                 if (readColour() == 0) // Blue
                 {
+                    moveForward(200);
+                    delay(300);
                     closeGrabbers();
                     blueLED(HIGH);
                     carryingBlue = true;
