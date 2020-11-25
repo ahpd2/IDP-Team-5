@@ -41,8 +41,11 @@ int go = false;
 bool carryingRed = false;
 bool carryingBlue = false;
 int red_blocks_delivered = 0;
-int blue_blocks_tunnel = 0;
+int blue_blocks_delivered = 0;
 int last = 0;
+bool blueDeliverySequence = false;
+bool overFirstBox = false;
+int lastState = 0;
 void loop()
 {
     updateLED();
@@ -107,83 +110,113 @@ void loop()
 
         if (farLeft && left && !farRight) // Reaches T juction turning left.
         {
-            if (red_blocks_delivered == 2 && blue_blocks_tunnel == 2) // only leave circle if all blocks delivered
+          if (lastState == 4){
+            if (red_blocks_delivered == 2 && blue_blocks_delivered) // only leave circle if all blocks delivered or if one blue block has been delivered
             {
                 turnLeft();
             }
+            
             else
             {
                 moveForward(200);
             }
+          }
+          lastState = 4;
         }
         else if (farRight && right && !farLeft) // Reaches T juction turning right.
         {
-            // Only goes anti-clockwise when carrying a blue block, so leave into the tunnel always
+          if (lastState == 3){
+            // Only goes anti-clockwise when carrying a blue block, so leave into the tunnel always, at this point make blue delivery sequence = true in order to turn right at the split junction
             turnRight();
-            if (carryingBlue)
-            {
-                moveForward(200); // move into tunnel section
-                delay(2000);
-                moveStop();
-                openGrabbers(); // drop the block
-                blue_blocks_tunnel += 1;
-                carryingBlue = false;
-                blueLED(LOW);
-                moveBackward(200); // move back to avoid block
-                delay(1000);
-                turnAround(); // turn around
-                moveForward(200);
-            }
+            blueDeliverySequence = true;
+          }
+          lastState = 3;
         }
-        else if (left == true && right == true) // two middle see white
+        else if (left && right) // two middle see white
         {
-            if (farLeft == true && farRight == true) // if coming into the T for the first time or start/finish box
+            if (farLeft && farRight) // if coming into the T for the first time or start/finish box
             {
-                if (red_blocks_delivered == 2 && blue_blocks_tunnel == 2)// if all blocks delivered, then move into start finish box and stop
-                {
-                  moveForward(200);
-                  delay(500);
-                  turnAround();
-                  moveStop();
-                  go = !go;
-                  isFlashing = false;
-                }
-                else //otherwise will be at T junction coming into oval, or at blue delivery so turn left
-                {
-                  turnLeft();
-                }
-            }
-            else if (farLeft == false && farRight == false) // Reached a delivery zone of split junction
-            {
-                if (carryingRed) // if carrying a block, drop it ont he delivery zone
-                {
-                    moveStop();
-                    moveBackward(200);
-                    delay(500);
-                    openGrabbers();
-                    redLED(LOW);
-                    red_blocks_delivered += 1;
-                    carryingRed = false;
-                    moveBackward(200);
-                    delay(800);
-                    moveAroundClockwise();
-                }
-                else // move forward otherwise (probably on splitter junction anyway)
-                {
+              
+              if (lastState == 1){
+                  if (red_blocks_delivered == 2 && blue_blocks_delivered == 2)// if all blocks delivered, then move into start finish box and stop
+                  {
                     moveForward(200);
+                    delay(500);
+                    turnAround();
+                    moveStop();
+                    go = !go;
+                    isFlashing = false;
+                  }
+                  else //otherwise will be at T junction coming into oval, or at blue delivery so turn left
+                  {
+                    turnLeft();
+                  }
+              }
+              lastState = 1;
+            }
+            else if (!farLeft && !farRight) // Reached a delivery zone of split junction
+            {
+                if (lastState == 2){
+                  if (carryingRed) // if carrying a block, drop it ont he delivery zone
+                  {
+                      moveStop();
+                      moveBackward(200);
+                      delay(400);
+                      openGrabbers();
+                      redLED(LOW);
+                      red_blocks_delivered += 1;
+                      carryingRed = false;
+                      moveBackward(200);
+                      delay(1500);
+                      moveAroundClockwise();
+                  }
+                  else if (carryingBlue && blueDeliverySequence) // this is to turn right at the split junction, to the blue delivery zone
+                  {
+                    moveRight(200);
+                    delay(1000);
+                    blueDeliverySequence = false;
+                  }
+                  else if (carryingBlue && (overFirstBox || blue_blocks_delivered == 1)) // this to deliver the blue over the square
+                  {
+                      moveStop();
+                      moveBackward(200);
+                      delay(500);
+                      openGrabbers();
+                      blueLED(LOW);
+                      blue_blocks_delivered += 1;
+                      carryingBlue = false;
+                      moveBackward(200);
+                      delay(800);
+                      turnAround();
+                      overFirstBox = false;
+                  }
+                  else if (carryingBlue && blue_blocks_delivered == 0) // this is to move past the first blue delivery zone if no blue blocks have been delivered yet
+                  {
+                      //TODO: make it move completely past the block, rather than turn right and get stuck
+                      overFirstBox = true;
+                      blueGoingOverDelivery();
+                  }
+                  else // move forward otherwise (probably on splitter junction anyway)
+                  {
+                      moveForward(200);
+                  }
                 }
+                lastState = 2;
             }
         }
         else if (left) // drifitng left from line
         {
+            lastState = 0;
             moveLeft(200);
         }
         else if (right) // drifting right from line
         {
+          lastState = 0;
             moveRight(200);
         }
         else // on line
         {
+          lastState = 0;
             moveForward(200);
         }
 
@@ -193,7 +226,8 @@ void loop()
             int col = readColour();
             if (col != -1) // if there is a detected colour
             {
-                Serial.print(col);
+                moveForward(200);
+                delay(200); 
                 moveStop();
                 if (readColour() == 0) // Blue
                 {
@@ -221,89 +255,11 @@ void loop()
         }
 
         //move forward around line
-        /*
-          if (readColour() != -1){
-            stopMotors();
-            closeGrabbers();
-            if (readColour() == 1){
-              if (//before halfway){
-                turnAround();
-                //go back to junction
-              }
-              else{
-                //go forward to junction
-              }
-            blue_blocks_delivered += 1;
-            }
-            if (readColour() == 0){
-              if (//before halfway){
-                if (//FIRST delivery taken){
-                  //take shortest path to second point following line
-                }
-                else{
-                  if (//going clockwise){
-                    //go forward and deliver to first point
-                  }
-                  else{
-                    turnAround();
-                    //deliver to first point
-                  }
-                }
-              }    
-              else{
-                if (//after second delivery point){
-                  if (//second delivery point taken){
-                    if (//going anti clockwise){
-                      //go forward, deliver to first point
-                    }
-                    else{
-                      turnAround();
-                      //deliver to first point
-                    }
-                  }
-                  else{
-                    if (//going anit clockwise){
-                      //go forward to second delivery point
-                    }
-                    else{
-                      turnAround(); 
-                      //deliver to second point
-                    }
-                  }
-                }
-                else{
-                  if (//second delivery point taken){
-                    if (//going clockwise){
-                      turnAround();
-                      //deliver to first point
-                    }
-                    else{
-                      //deliver to first point
-                    }
-                  }
-                  else{
-                    if (//going clockwise){
-                      //deliver to second point
-                    }
-                    else{
-                      turnAround();
-                      //deliver to second point
-                    }
-                  }
-                }
-              }
-              red_blocks_delivered += 1;
-            }
-          }
-        
-        }
-        
-        }
-        */
+
     }
     else // if not moving, debug print line followers
     {
-        
+        /*
         Serial.print(analogRead(A2));
         Serial.print(", ");
         Serial.print(analogRead(A1));
@@ -311,7 +267,8 @@ void loop()
         Serial.print(analogRead(A3));
         Serial.print(", ");
         Serial.println(analogRead(A4));
-        /*
+        */
+        
         Serial.print(readLine(1));
         Serial.print(", ");
         Serial.print(readLine(2));
@@ -321,6 +278,7 @@ void loop()
         Serial.print(readLine(3));
         Serial.print(", ");
         Serial.println(readColour());
+        /*
        Serial.print("distance: ");
        Serial.println(readDist(10));
        delay(20);

@@ -97,7 +97,7 @@ void redLED(bool val)
 
 void closeGrabbers()
 {
-    grabberLeft.write(90);
+    grabberLeft.write(95);
     grabberRight.write(60);
 }
 
@@ -203,8 +203,15 @@ void moveAroundAntiClockwise()
             break;
         delay(10);
     }
-    turnLeft();
-    moveStop();
+    moveForward(200);
+    delay(400);
+    for (int x = 0; x < 1150; x++)
+    { // If no line is hit after 11.5 seconds stop anyway
+        rotateLeft(255);
+        if (readLine(1)) // Hit line
+            break;
+        delay(10);
+    }
 }
 
 void moveAroundClockwise()
@@ -213,7 +220,7 @@ void moveAroundClockwise()
     moveForward(200);
     delay(300);
     // Move in an arc until it hits the line
-    motorLeft->setSpeed(50);
+    motorLeft->setSpeed(65);
     motorRight->setSpeed(200);
     motorLeft->run(FORWARD);
     motorRight->run(FORWARD);
@@ -224,6 +231,22 @@ void moveAroundClockwise()
             break;
         delay(10);
     }
-    turnRight();
-    moveStop();
+    moveForward(200);
+    delay(400);
+    for (int x = 0; x < 1150; x++)
+    { // If no line is hit after 11.5 seconds stop anyway
+        rotateRight(255);
+        if (readLine(1)) // Hit line
+            break;
+        delay(10);
+    }
+    
+}
+
+void blueGoingOverDelivery()
+{
+  motorRight->run(RELEASE);
+  motorLeft->setSpeed(200);
+  motorLeft->run(FORWARD);
+  delay(1750);
 }
