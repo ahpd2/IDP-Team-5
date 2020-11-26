@@ -12,7 +12,7 @@
 #define LEFT_THRESH 800
 #define MID_LEFT_THRESH 950
 #define MID_RIGHT_THRESH 950
-#define RIGHT_THRESH 1000
+#define RIGHT_THRESH 990
 
 // Colour Sensor
 
@@ -121,26 +121,41 @@ bool readGo()
  */
 int readColour()
 {
-    digitalWrite(COL_RED, HIGH);
-    delay(COL_DELAY);
-    int red = analogRead(COL_LDR);
-    digitalWrite(COL_RED, LOW);
-    digitalWrite(COL_BLUE, HIGH);
-    delay(COL_DELAY);
-    int blue = analogRead(COL_LDR);
-    digitalWrite(COL_BLUE, LOW);
-    //Serial.print(red);
+    int redCount = 0;
+    int blueCount = 0;
+    int undef = 0;
+    for (int i = 0; i < 5; i++){
+      digitalWrite(COL_RED, HIGH);
+      delay(COL_DELAY);
+      int red = analogRead(COL_LDR);
+      digitalWrite(COL_RED, LOW);
+      digitalWrite(COL_BLUE, HIGH);
+      delay(COL_DELAY);
+      int blue = analogRead(COL_LDR);
+      digitalWrite(COL_BLUE, LOW);
+      
+      if (red > blue + COL_THRESH)
+      { // RED
+          blueCount++;
+      }
+      else if (blue > red + COL_THRESH)
+      { // BLUE
+          redCount++;
+      }
+      else{
+        undef++;
+      }
+    }
+    //Serial.print(redCount);
     //Serial.print(", ");
-    //Serial.println(blue);
-    if (red > blue + COL_THRESH)
-    { // RED
-        return 0;
+    //Serial.println(blueCount);
+    if (redCount > blueCount && redCount > undef){
+      return 1;
     }
-    if (blue > red + COL_THRESH)
-    { // BLUE
-        return 1;
+    else if (blueCount > redCount && blueCount > undef){
+      return 0;
     }
-    return -1; // Neither
+    return -1;
 }
 
 /**
@@ -185,7 +200,6 @@ int readDistOnce()
     // defines variables
     long duration; // variable for the duration of sound wave travel
     int distance;  // variable for the distance measurement
-
     // Clears the trigPin condition
     digitalWrite(DIST_TRIG, LOW);
     delayMicroseconds(2);

@@ -48,7 +48,6 @@ bool overFirstBox = false;
 int lastState = 0;
 void loop()
 {
-    updateLED();
     if (readGo()) // If go buttong pressed
     {
         go = !go; 
@@ -67,6 +66,7 @@ void loop()
     }
     if (go) // Can move
     {
+        updateLED();
         bool left, right, farLeft, farRight;
         left = readLine(1);
         right = readLine(2);
@@ -270,6 +270,7 @@ void loop()
         Serial.print(", ");
         Serial.println(analogRead(A4));
         */
+        //readColour();
         
         Serial.print(readLine(1));
         Serial.print(", ");
@@ -280,10 +281,11 @@ void loop()
         Serial.print(readLine(3));
         Serial.print(", ");
         Serial.println(readColour());
-        /*
+       /*
        Serial.print("distance: ");
        Serial.println(readDist(10));
        delay(20);
        */
+       
     }
 }
