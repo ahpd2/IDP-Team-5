@@ -236,20 +236,40 @@ void loop()
                     closeGrabbers();
                     blueLED(HIGH);
                     carryingBlue = true;
-                    turnAround();
+                    rotateLeft(255);
+                    delay(1600);
+                    moveForward(200);
+                    delay(1000);
+                    openGrabbers();
+                    blueLED(LOW);
+                    carryingBlue = false;
+                    blue_blocks_delivered += 1;
+                    moveBackward(200);
+                    delay(1000);
+                    rotateRight(255);
+                    delay(1600);
                 }
                 else if (readColour() == 1) // Red
                 {
                     if (red_blocks_delivered < 2)
                     {
-                        closeGrabbers();
-                        redLED(HIGH);
-                        carryingRed = true;
+                      closeGrabbers();
+                      redLED(HIGH);
+                      carryingRed = true;
+                      if (blue_blocks_delivered < 2){
+                        turnAround();
+                        openGrabbers();
+                        redLED(LOW);
+                        carryingRed = false;
+                        moveBackward(200);
+                        delay(1300);
+                        turnAround();
+                      }
                     }
                     else
                     {
                         moveBackward(200);
-                        delay(500);
+                        delay(1500);
                         moveAroundClockwise();
                     }
                 }
