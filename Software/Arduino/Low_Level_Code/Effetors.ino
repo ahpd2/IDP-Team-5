@@ -1,7 +1,9 @@
 #include <Servo.h>
 #include <Wire.h>
 #include <Adafruit_MotorShield.h>
-//#include <Sensors.ino>
+#ifdef VSCODE
+    #include <Sensors.ino>
+#endif
 
 // Ouptut LEDS
 #define LED_AMBER 7

@@ -1,5 +1,7 @@
-//    #include <Sensors.ino>
-//    #include <Effetors.ino>
+#ifdef VSCODE
+    #include <Sensors.ino>
+    #include <Effetors.ino>
+#endif
 
 void setup()
 {
