@@ -256,6 +256,7 @@ void loop()
                       closeGrabbers();
                       redLED(HIGH);
                       carryingRed = true;
+                      /*
                       if (blue_blocks_delivered < 2){
                         turnAround();
                         openGrabbers();
@@ -264,7 +265,7 @@ void loop()
                         moveBackward(200);
                         delay(1300);
                         turnAround();
-                      }
+                      }*/
                     }
                     else
                     {
