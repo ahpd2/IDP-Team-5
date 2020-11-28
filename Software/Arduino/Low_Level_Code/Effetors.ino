@@ -141,6 +141,22 @@ void moveRight(int vel)
     motorRight->run(RELEASE);
 }
 
+void backRight(int vel)
+{
+    motorLeft->setSpeed(vel);
+    motorRight->setSpeed(vel);
+    motorLeft->run(RELEASE);
+    motorRight->run(BACKWARD);
+}
+
+void backLeft(int vel)
+{
+    motorLeft->setSpeed(vel);
+    motorRight->setSpeed(vel);
+    motorLeft->run(BACKWARD);
+    motorRight->run(RELEASE);
+}
+
 void rotateRight(int vel)
 {
     motorLeft->setSpeed(vel);
