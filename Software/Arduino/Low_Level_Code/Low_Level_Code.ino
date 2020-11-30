@@ -469,7 +469,7 @@ void loop()
         debugln(analogRead(A4));
         */
         //readColour();
-
+        
         debug(readLine(1));
         debug(", ");
         debug(readLine(2));
@@ -486,5 +486,3 @@ void loop()
         */
     }
 }
-
-

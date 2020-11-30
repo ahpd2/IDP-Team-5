@@ -99,8 +99,8 @@ void redLED(bool val)
 
 void closeGrabbers()
 {
-    grabberLeft.write(95);
-    grabberRight.write(60);
+    grabberLeft.write(82);
+    grabberRight.write(56);
 }
 
 void openGrabbers()
