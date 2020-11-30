@@ -26,6 +26,9 @@ void setup()
 
     setupSensors();
     setupEffectors();
+
+
+    
 }
 
 #pragma region //Delay Setup 
@@ -157,6 +160,7 @@ void loop()
             isFlashing = true;
             moveForward(200);
             delay(800);
+            redBlocksMoved = 1;
         } else {
             moveStop();
             isFlashing = false;
@@ -166,9 +170,8 @@ void loop()
         delay(200);
     }
     if (go) // Can move
-    {
-        updateLED();
-        
+    {   
+        debugln(currentTask);
         switch (currentTask){
             case FINDINGBLOCKS:
                 // if layouts 3, 4 or 5 and delivered red to first delivery zone OR 1 
@@ -232,14 +235,16 @@ void loop()
                         if (col == BLUE){
                             turnAround();
                             currentTask = DELIVERINGBLUE; // deliver the blue block
+                            debugln("Exiting finding blocks");
                         } 
-                        else if (col == RED)
+                        else if (col == RED){
                             if (redBlocksMoved == 1)
                                 layout4 = true;
                             currentTask = DELIVERINGRED; // move the red block to start area.
+                        }
                     }
                     // if fourth block of layout 3 and 1 or third of 2 and 6
-                    if ((redBlocksMoved == 0 && blueBlocksDelivered == 2)
+                    else if ((redBlocksMoved == 0 && blueBlocksDelivered == 2)
                             || (redBlocksMoved == 1 && blueBlocksDelivered == 1 && lastBlockDelivered == BLUE)){
                         turnLeft();
                         while (readColour() == UNKNOWN) // follow line until hit block
@@ -257,6 +262,7 @@ void loop()
                 break;
 
             case DELIVERINGBLUE:
+                DEBUG("Delivering Blue");
                 // go to the T junction
                 while (!T_FROM_LEFT && !T_FROM_RIGHT)
                     followLine();
@@ -343,21 +349,23 @@ void loop()
                     delay(1);
 
                 long t_start = millis();
-                while (millis() < t_start + 2000) // follow line for two seconds
+                while (millis() < t_start + 8000) // follow line for two seconds
                     followLine();
                 // drop block
                 openGrabbers();
                 redLED(LOW);
                 redBlocksMoved += 1;
                 t_start = millis();
-                while (millis() < t_start + 1500) // follow line backwards for 1 and a half seconds
-                    followLineBackwards();
+                moveBackward(255
+                );
+                delay(2000);
                 turnAround();
                 currentTask = FINDINGBLOCKS;
                 break;
             
 
             case DELIVERINGRED:
+                debugln("delivering red");
                 while (!BOX_OR_SPLIT)
                     followLine();
                 dropBlock();
@@ -373,27 +381,24 @@ void loop()
                     else
                         turnAround();
                     currentTask = RETURNINGHOME;
+                    break;
                 }
                 else if (blueBlocksDelivered == 2 && redBlocksMoved == 0){
                     moveAroundClockwise();
-                    currentTask = FINDINGBLOCKS;
                 }
                 else if (blueBlocksDelivered == 2 && redBlocksMoved == 1){
                     moveAroundAntiClockwise();
-                    currentTask = FINDINGBLOCKS;
                 }
                 else if (blueBlocksDelivered == 0 && redBlocksMoved == 1){ // layout 4 bottom right red
                     moveAroundAntiClockwise();
-                    currentTask = FINDINGBLOCKS;
                 }
                 if (redBlocksMoved){ // layout 2 top left red
                     moveAroundClockwise();
-                    currentTask = FINDINGBLOCKS;
                 }
                 else{
                     moveAroundAntiClockwise();
-                    currentTask = FINDINGBLOCKS;
                 }
+                currentTask = FINDINGBLOCKS;
                 lastBlockDelivered = RED;
                 break;
 
@@ -454,7 +459,7 @@ void loop()
 
                 break;
             default:
-                debug("defaulted");
+                debugln("defaulted");
         }
 
     } else // if not moving, debug print line followers
