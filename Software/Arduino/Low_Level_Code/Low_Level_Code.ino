@@ -174,10 +174,7 @@ void loop()
         debugln(currentTask);
         switch (currentTask){
             case FINDINGBLOCKS:
-                // if layouts 3, 4 or 5 and delivered red to first delivery zone OR 1 
-                if ((redBlocksMoved + blueBlocksDelivered == 1 && redBlocksDelivered != 0) // layout 3 & 5
-                    || (redBlocksDelivered == 1 && blueBlocksDelivered == 2 && lastBlockDelivered == RED)
-                    || (redBlocksMoved == 1 && blueBlocksDelivered == 1 && lastBlockDelivered == RED)){
+                if (lastBlockDelivered == RED){
                     while (readColour() == UNKNOWN)
                         followLine();
                     int col = pickupBlock();
