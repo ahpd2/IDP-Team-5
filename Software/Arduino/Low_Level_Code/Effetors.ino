@@ -211,7 +211,7 @@ void moveAroundAntiClockwise()
     delay(300);
     // Move in an arc until it hits the line
     motorLeft->setSpeed(200);
-    motorRight->setSpeed(50);
+    motorRight->setSpeed(65);
     motorLeft->run(FORWARD);
     motorRight->run(FORWARD);
     delay(300);
@@ -226,7 +226,7 @@ void moveAroundAntiClockwise()
     for (int x = 0; x < 1150; x++)
     { // If no line is hit after 11.5 seconds stop anyway
         rotateLeft(255);
-        if (readLine(1)) // Hit line
+        if (readLine(2)) // Hit line
             break;
         delay(10);
     }
