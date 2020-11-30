@@ -81,68 +81,6 @@ uint8_t blueBlocksDelivered = 0;
 #define BOTTOMLEFT 2
 #define BOTTOMRIGHT 3
 
-uint8_t blockStates[4] = {UNKNOWN, UNKNOWN, UNKNOWN, UNKNOWN};
-uint8_t layout = 0;
-void updateState(int location, int value){
-    blockStates[location] = value;
-    int reds = 0;
-    int blues = 0;
-    for (int i = 0; i < 4; i++){
-        if (blockStates[i] == BLUE){
-            ++blues;
-        } 
-        else if (blockStates[i] == RED){
-            ++reds;
-        }
-    }
-    int blueIndexes [2] = {0, 0};
-    bool one = true;
-    if (reds == 2){
-        for (int i = 0; i < 4; i++){
-            if (blockStates[i] == UNKNOWN || blockStates[i] == BLUE)
-                blockStates[i] = BLUE;
-                if (one){
-                    blueIndexes[0] = i;
-                    one = !one;
-                }
-                else
-                    blueIndexes[1] = i;    
-        }
-    }
-    if (blues == 2){
-        for (int i = 0; i < 4; i++){
-            if (blockStates[i] == UNKNOWN)
-                blockStates[i] = RED;
-            if (blockStates[i] == BLUE){
-                if (one){
-                    blueIndexes[0] = i;
-                    one = !one;
-                }
-                else
-                    blueIndexes[1] = i;  
-            }
-        }
-    }
-    if (reds == 2 || blues == 2){
-        if (blueIndexes[0] == TOPLEFT){
-            if (blueIndexes[1] == TOPRIGHT)
-                layout = 4;
-            if (blueIndexes[1] == BOTTOMLEFT)
-                layout = 5;
-            if (blueIndexes[1] == BOTTOMRIGHT)
-                layout = 6;
-        }
-        if (blueIndexes[0] == TOPRIGHT){
-            if (blueIndexes[1] == BOTTOMLEFT)
-                layout = 3;
-            if (blueIndexes[1] == BOTTOMRIGHT)
-                layout = 2;
-        }
-        else
-            layout = 1;
-    }
-}
-
 #define T_FROM_RIGHT    (readLine(0)    && readLine(1)                  && !readLine(3) )
 #define T_FROM_LEFT     (!readLine(0)                   && readLine(2)  && readLine(3)  )
 #define T_FROM_BOTTOM   (readLine(0)    && readLine(1)  && readLine(2)  && readLine(3)  )
@@ -230,291 +168,293 @@ void loop()
     if (go) // Can move
     {
         updateLED();
-
-        if (currentTask == FINDINGBLOCKS){
-            // if layouts 3, 4 or 5 and delivered red to first delivery zone OR 1 
-            if ((redBlocksMoved + blueBlocksDelivered == 1 && redBlocksDelivered != 0) // layout 3 & 5
-                || (redBlocksDelivered == 1 && blueBlocksDelivered == 2 && lastBlockDelivered == RED)
-                || (redBlocksMoved == 1 && blueBlocksDelivered == 1 && lastBlockDelivered == RED)){
-                while (readColour() == UNKNOWN)
-                    followLine();
-                int col = pickupBlock();
-                // layout 3 or 4
-                if (col == BLUE){
-                    // if not layout 2 last blue block
-                    if ( !(redBlocksMoved == 1 && blueBlocksDelivered == 1 && lastBlockDelivered == RED)){ 
-                        turnLeft();
-                        moveForward(255);
-                        while (!INNER_TWO)
-                            delay(1);
-                        if (redBlocksDelivered == 2){ // layout 5
+        
+        switch (currentTask){
+            case FINDINGBLOCKS:
+                // if layouts 3, 4 or 5 and delivered red to first delivery zone OR 1 
+                if ((redBlocksMoved + blueBlocksDelivered == 1 && redBlocksDelivered != 0) // layout 3 & 5
+                    || (redBlocksDelivered == 1 && blueBlocksDelivered == 2 && lastBlockDelivered == RED)
+                    || (redBlocksMoved == 1 && blueBlocksDelivered == 1 && lastBlockDelivered == RED)){
+                    while (readColour() == UNKNOWN)
+                        followLine();
+                    int col = pickupBlock();
+                    // layout 3 or 4
+                    if (col == BLUE){
+                        // if not layout 2 last blue block
+                        if ( !(redBlocksMoved == 1 && blueBlocksDelivered == 1 && lastBlockDelivered == RED)){ 
                             turnLeft();
+                            moveForward(255);
+                            while (!INNER_TWO)
+                                delay(1);
+                            if (redBlocksDelivered == 2){ // layout 5
+                                turnLeft();
+                            }
+                            else{ // layout 3
+                                turnRight(); // TODO: if angle is fucked do this like the move around clockwise does.
+                            }
                         }
-                        else{ // layout 3
-                            turnRight(); // TODO: if angle is fucked do this like the move around clockwise does.
-                        }
-                    }
-                    currentTask = DELIVERINGBLUE;
-                }
-                // layout 5
-                if (col == RED){
-                    currentTask = DELIVERINGRED;
-                }
-            }
-            else {
-                // get to t junction
-                while (!BOX_OR_SPLIT)
-                    followLine();
-                moveForward(255);
-                while (BOX_OR_SPLIT)
-                    delay(1);
-                while (!T_FROM_BOTTOM)
-                    followLine();
-                // FIRST BLOCK
-                if ((redBlocksDelivered + redBlocksMoved + blueBlocksDelivered == 0)){
-                    turnLeft();
-                    while (readColour() == UNKNOWN) // follow line until hit block
-                        followLine();
-                    
-                    int col = pickupBlock();
-                    turnAround();
-                    if (col == BLUE)
-                        currentTask = DELIVERINGBLUE; // deliver the blue block
-                    else if (readColour() == RED)
-                        currentTask = MOVINGRED; // move the red block to start area.
-                }
-                // SECOND BLOCK
-                if (redBlocksDelivered + redBlocksMoved + blueBlocksDelivered == 1){
-                    turnRight();
-                    while (readColour() == UNKNOWN) // follow line until hit block
-                        followLine();
-                    
-                    int col = pickupBlock();
-                    if (col == BLUE){
-                        turnAround();
-                        currentTask = DELIVERINGBLUE; // deliver the blue block
-                    } 
-                    else if (col == RED)
-                        if (redBlocksMoved == 1)
-                            layout4 = true;
-                        currentTask = DELIVERINGRED; // move the red block to start area.
-                }
-                // if fourth block of layout 3 and 1 or third of 2 and 6
-                if ((redBlocksMoved == 0 && blueBlocksDelivered == 2)
-                        || (redBlocksMoved == 1 && blueBlocksDelivered == 1 && lastBlockDelivered == BLUE)){
-                    turnLeft();
-                    while (readColour() == UNKNOWN) // follow line until hit block
-                        followLine();
-                    int col = pickupBlock();
-                    if (col == RED){
-                        currentTask == DELIVERINGRED;
-                    }
-                    if (col == BLUE){
-                        turnAround();
                         currentTask = DELIVERINGBLUE;
                     }
+                    // layout 5
+                    if (col == RED){
+                        currentTask = DELIVERINGRED;
+                    }
                 }
-            }
-              
-        }
-
-        if (currentTask == DELIVERINGBLUE){
-            // go to the T junction
-            while (!T_FROM_LEFT && !T_FROM_RIGHT)
-                followLine();
-            if (T_FROM_RIGHT)
-                turnLeft();
-            else
-                turnRight();
-            // go to J junction
-            while (!BOX_OR_SPLIT)
-                followLine();
-            // get past J to the right
-            moveRight(200);
-            delay(1000);
-            // go to Blue delivery area
-            while (!T_FROM_BOTTOM)
-                followLine();
-            // execute blue delivery
-            turnLeft();
-            while (!BOX_OR_SPLIT)
-                followLine();
-            if (blueBlocksDelivered) {
-                dropBlock();
-                blueLED(LOW);
-                blueBlocksDelivered += 1;
-                while (!readLine(0))
-                    followLineBackwards();
-                turnLeft();
-            } else {
-                moveForward(200);
-                delay(300);
-                turnRight();
-                while (!BOX_OR_SPLIT)
-                    followLine();
-                dropBlock();
-                blueLED(LOW);
-                blueBlocksDelivered += 1;
-                while (!BOX_OR_SPLIT)
-                    followLineBackwards();
-                moveBackward(200);
-                delay(470);
-                turnRight();
-                // TODO: Go far enough to get to line before turning right again.
-                moveForward(200);
-                delay(1400);
-                while (!readLine(3))
-                    followLine();
-                turnRight();
-            }
-            if ((redBlocksDelivered == 2 && blueBlocksDelivered == 2) // all delivered
-                || (redBlocksMoved == 1 && blueBlocksDelivered == 2)){ // or layouts 2, 4, 6
-                while (!BOX_OR_SPLIT) // go to j split
-                    followLine();
-                moveForward(255);
-                while (BOX_OR_SPLIT) // get past j split
-                    delay(1);
-                int t_start = millis();
-                while (millis() < t_start + 500) // move forward for another 0.5 seconds
-                    followLine();
-                turnAround();
-                if (redBlocksDelivered == 2){
-                    currentTask == RETURNINGHOME;
+                else {
+                    // get to t junction
+                    while (!BOX_OR_SPLIT)
+                        followLine();
+                    moveForward(255);
+                    while (BOX_OR_SPLIT)
+                        delay(1);
+                    while (!T_FROM_BOTTOM)
+                        followLine();
+                    // FIRST BLOCK
+                    if ((redBlocksDelivered + redBlocksMoved + blueBlocksDelivered == 0)){
+                        turnLeft();
+                        while (readColour() == UNKNOWN) // follow line until hit block
+                            followLine();
+                        
+                        int col = pickupBlock();
+                        turnAround();
+                        if (col == BLUE)
+                            currentTask = DELIVERINGBLUE; // deliver the blue block
+                        else if (readColour() == RED)
+                            currentTask = MOVINGRED; // move the red block to start area.
+                    }
+                    // SECOND BLOCK
+                    if (redBlocksDelivered + redBlocksMoved + blueBlocksDelivered == 1){
+                        turnRight();
+                        while (readColour() == UNKNOWN) // follow line until hit block
+                            followLine();
+                        
+                        int col = pickupBlock();
+                        if (col == BLUE){
+                            turnAround();
+                            currentTask = DELIVERINGBLUE; // deliver the blue block
+                        } 
+                        else if (col == RED)
+                            if (redBlocksMoved == 1)
+                                layout4 = true;
+                            currentTask = DELIVERINGRED; // move the red block to start area.
+                    }
+                    // if fourth block of layout 3 and 1 or third of 2 and 6
+                    if ((redBlocksMoved == 0 && blueBlocksDelivered == 2)
+                            || (redBlocksMoved == 1 && blueBlocksDelivered == 1 && lastBlockDelivered == BLUE)){
+                        turnLeft();
+                        while (readColour() == UNKNOWN) // follow line until hit block
+                            followLine();
+                        int col = pickupBlock();
+                        if (col == RED){
+                            currentTask == DELIVERINGRED;
+                        }
+                        if (col == BLUE){
+                            turnAround();
+                            currentTask = DELIVERINGBLUE;
+                        }
+                    }
                 }
-                else{
-                    currentTask == COLLECTINGMOVEDRED;
-                }
-            }
-            currentTask = FINDINGBLOCKS;
-            lastBlockDelivered = BLUE;
-        }
+                break;
 
-
-        if (currentTask == MOVINGRED){
-            // go to the T junction
-            while (!T_FROM_LEFT && !T_FROM_RIGHT)
-                followLine();
-            if (T_FROM_RIGHT)
-                turnLeft();
-            else
-                turnRight();
-            // go to J junction
-            while (!BOX_OR_SPLIT)
-                followLine();
-            moveForward(255);
-            while (BOX_OR_SPLIT)  // move forward until past j junction         
-                delay(1);
-
-            long t_start = millis();
-            while (millis() < t_start + 2000) // follow line for two seconds
-                followLine();
-            // drop block
-            openGrabbers();
-            redLED(LOW);
-            redBlocksMoved += 1;
-            t_start = millis();
-            while (millis() < t_start + 1500) // follow line backwards for 1 and a half seconds
-                followLineBackwards();
-            turnAround();
-            currentTask = FINDINGBLOCKS;
-        }
-        
-
-        if (currentTask == DELIVERINGRED){
-            while (!BOX_OR_SPLIT)
-                followLine();
-            dropBlock();
-            redLED(LOW);
-            redBlocksDelivered += 1;
-            
-            if (redBlocksDelivered == 2 && blueBlocksDelivered == 2){
-                if (lastBlockDelivered == RED && redBlocksMoved == 0)
-                    moveAroundClockwise();
-                else if (lastBlockDelivered == RED && redBlocksMoved == 1){
-                    moveAroundAntiClockwise();
-                }
-                else
-                    turnAround();
-                currentTask = RETURNINGHOME;
-            }
-            else if (blueBlocksDelivered == 2 && redBlocksMoved == 0){
-                moveAroundClockwise();
-                currentTask = FINDINGBLOCKS;
-            }
-            else if (blueBlocksDelivered == 2 && redBlocksMoved == 1){
-                moveAroundAntiClockwise();
-                currentTask = FINDINGBLOCKS;
-            }
-            else if (blueBlocksDelivered == 0 && redBlocksMoved == 1){ // layout 4 bottom right red
-                moveAroundAntiClockwise();
-                currentTask = FINDINGBLOCKS;
-            }
-            if (redBlocksMoved){ // layout 2 top left red
-                moveAroundClockwise();
-                currentTask = FINDINGBLOCKS;
-            }
-            else{
-                moveAroundAntiClockwise();
-                currentTask = FINDINGBLOCKS;
-            }
-            lastBlockDelivered = RED;
-        }
-
-        if (currentTask == RETURNINGHOME){
-            // go to the T junction
-            while (!T_FROM_LEFT && !T_FROM_RIGHT && !BOX_OR_SPLIT)
-                followLine();
-            if (!BOX_OR_SPLIT){
+            case DELIVERINGBLUE:
+                // go to the T junction
+                while (!T_FROM_LEFT && !T_FROM_RIGHT)
+                    followLine();
                 if (T_FROM_RIGHT)
                     turnLeft();
                 else
                     turnRight();
                 // go to J junction
                 while (!BOX_OR_SPLIT)
-                    followLine();   
-            }
-            moveForward(255);
-            while (BOX_OR_SPLIT)  // move forward until past j junction         
-                delay(1);
-            while (!T_FROM_BOTTOM)
-                followLine();
-            moveForward(255);
-            delay(1000);
-            turnAround();
-            moveStop();
-            go = !go;
-            isFlashing = false;
-            amberLED(LOW);
-            currentTask = DONE;
-        }
-
-        if (currentTask == COLLECTINGMOVEDRED){
-            // go to split junction
-            while (!BOX_OR_SPLIT)
-                followLine();   
-            moveForward(255);
-            while (BOX_OR_SPLIT)  // move forward until past j junction         
-                delay(1);
-            while (readColour() == UNKNOWN)
-                followLine();
-            // pick up red block
-            int col = pickupBlock();
-            if (col == RED){
-                turnAround();
-                while (!BOX_OR_SPLIT)
                     followLine();
-                moveForward(255);
-                while (BOX_OR_SPLIT)
-                    delay(1);
+                // get past J to the right
+                moveRight(200);
+                delay(1000);
+                // go to Blue delivery area
                 while (!T_FROM_BOTTOM)
                     followLine();
-                if (layout4)
+                // execute blue delivery
+                turnLeft();
+                while (!BOX_OR_SPLIT)
+                    followLine();
+                if (blueBlocksDelivered) {
+                    dropBlock();
+                    blueLED(LOW);
+                    blueBlocksDelivered += 1;
+                    while (!readLine(0))
+                        followLineBackwards();
+                    turnLeft();
+                } else {
+                    moveForward(200);
+                    delay(300);
+                    turnRight();
+                    while (!BOX_OR_SPLIT)
+                        followLine();
+                    dropBlock();
+                    blueLED(LOW);
+                    blueBlocksDelivered += 1;
+                    while (!BOX_OR_SPLIT)
+                        followLineBackwards();
+                    moveBackward(200);
+                    delay(470);
+                    turnRight();
+                    // TODO: Go far enough to get to line before turning right again.
+                    moveForward(200);
+                    delay(1400);
+                    while (!readLine(3))
+                        followLine();
+                    turnRight();
+                }
+                if ((redBlocksDelivered == 2 && blueBlocksDelivered == 2) // all delivered
+                    || (redBlocksMoved == 1 && blueBlocksDelivered == 2)){ // or layouts 2, 4, 6
+                    while (!BOX_OR_SPLIT) // go to j split
+                        followLine();
+                    moveForward(255);
+                    while (BOX_OR_SPLIT) // get past j split
+                        delay(1);
+                    int t_start = millis();
+                    while (millis() < t_start + 500) // move forward for another 0.5 seconds
+                        followLine();
+                    turnAround();
+                    if (redBlocksDelivered == 2){
+                        currentTask == RETURNINGHOME;
+                    }
+                    else{
+                        currentTask == COLLECTINGMOVEDRED;
+                    }
+                }
+                currentTask = FINDINGBLOCKS;
+                lastBlockDelivered = BLUE;
+                break;
+
+            case MOVINGRED:
+                // go to the T junction
+                while (!T_FROM_LEFT && !T_FROM_RIGHT)
+                    followLine();
+                if (T_FROM_RIGHT)
                     turnLeft();
                 else
                     turnRight();
-                currentTask == DELIVERINGRED;
-            }
+                // go to J junction
+                while (!BOX_OR_SPLIT)
+                    followLine();
+                moveForward(255);
+                while (BOX_OR_SPLIT)  // move forward until past j junction         
+                    delay(1);
 
+                long t_start = millis();
+                while (millis() < t_start + 2000) // follow line for two seconds
+                    followLine();
+                // drop block
+                openGrabbers();
+                redLED(LOW);
+                redBlocksMoved += 1;
+                t_start = millis();
+                while (millis() < t_start + 1500) // follow line backwards for 1 and a half seconds
+                    followLineBackwards();
+                turnAround();
+                currentTask = FINDINGBLOCKS;
+                break;
+            
+
+            case DELIVERINGRED:
+                while (!BOX_OR_SPLIT)
+                    followLine();
+                dropBlock();
+                redLED(LOW);
+                redBlocksDelivered += 1;
+                
+                if (redBlocksDelivered == 2 && blueBlocksDelivered == 2){
+                    if (lastBlockDelivered == RED && redBlocksMoved == 0)
+                        moveAroundClockwise();
+                    else if (lastBlockDelivered == RED && redBlocksMoved == 1){
+                        moveAroundAntiClockwise();
+                    }
+                    else
+                        turnAround();
+                    currentTask = RETURNINGHOME;
+                }
+                else if (blueBlocksDelivered == 2 && redBlocksMoved == 0){
+                    moveAroundClockwise();
+                    currentTask = FINDINGBLOCKS;
+                }
+                else if (blueBlocksDelivered == 2 && redBlocksMoved == 1){
+                    moveAroundAntiClockwise();
+                    currentTask = FINDINGBLOCKS;
+                }
+                else if (blueBlocksDelivered == 0 && redBlocksMoved == 1){ // layout 4 bottom right red
+                    moveAroundAntiClockwise();
+                    currentTask = FINDINGBLOCKS;
+                }
+                if (redBlocksMoved){ // layout 2 top left red
+                    moveAroundClockwise();
+                    currentTask = FINDINGBLOCKS;
+                }
+                else{
+                    moveAroundAntiClockwise();
+                    currentTask = FINDINGBLOCKS;
+                }
+                lastBlockDelivered = RED;
+                break;
+
+            case RETURNINGHOME:
+                // go to the T junction
+                while (!T_FROM_LEFT && !T_FROM_RIGHT && !BOX_OR_SPLIT)
+                    followLine();
+                if (!BOX_OR_SPLIT){
+                    if (T_FROM_RIGHT)
+                        turnLeft();
+                    else
+                        turnRight();
+                    // go to J junction
+                    while (!BOX_OR_SPLIT)
+                        followLine();   
+                }
+                moveForward(255);
+                while (BOX_OR_SPLIT)  // move forward until past j junction         
+                    delay(1);
+                while (!T_FROM_BOTTOM)
+                    followLine();
+                moveForward(255);
+                delay(1000);
+                turnAround();
+                moveStop();
+                go = !go;
+                isFlashing = false;
+                amberLED(LOW);
+                currentTask = DONE;
+                break;
+
+            case COLLECTINGMOVEDRED:
+                // go to split junction
+                while (!BOX_OR_SPLIT)
+                    followLine();   
+                moveForward(255);
+                while (BOX_OR_SPLIT)  // move forward until past j junction         
+                    delay(1);
+                while (readColour() == UNKNOWN)
+                    followLine();
+                // pick up red block
+                int col = pickupBlock();
+                if (col == RED){
+                    turnAround();
+                    while (!BOX_OR_SPLIT)
+                        followLine();
+                    moveForward(255);
+                    while (BOX_OR_SPLIT)
+                        delay(1);
+                    while (!T_FROM_BOTTOM)
+                        followLine();
+                    if (layout4)
+                        turnLeft();
+                    else
+                        turnRight();
+                    currentTask == DELIVERINGRED;
+                }
+
+                break;
+            default:
+                debug("defaulted");
         }
 
     } else // if not moving, debug print line followers
