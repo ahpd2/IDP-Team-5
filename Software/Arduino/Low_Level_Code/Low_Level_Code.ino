@@ -1,7 +1,8 @@
 /** TODO
  * - check if blue extra forward movement is needed.
  * - if angle is fucked on blue skip do this like the move around clockwise does.
- * - test this jankiness
+ * - second blue delivery reliability
+ * - left red retrieval
  */
 
 
@@ -19,17 +20,6 @@
     #define debug(arg)
     #define debugln(arg)
 #endif
-
-void setup()
-{
-    Serial.begin(9600);
-
-    setupSensors();
-    setupEffectors();
-
-
-    
-}
 
 #pragma region //Delay Setup 
 void customDelay(unsigned long t)
@@ -60,8 +50,6 @@ void updateLED()
 
 #pragma endregion
 
-bool go = false;
-
 #define FINDINGBLOCKS       0
 #define DELIVERINGBLUE      1
 #define MOVINGRED           2
@@ -72,7 +60,7 @@ bool go = false;
 uint8_t currentTask = FINDINGBLOCKS;
 
 uint8_t redBlocksDelivered = 0;
-bool redBlocksMoved = 0;
+uint8_t redBlocksMoved = 0;
 uint8_t blueBlocksDelivered = 0;
 
 #define BLUE 0
@@ -92,27 +80,28 @@ uint8_t blueBlocksDelivered = 0;
 
 uint8_t lastBlockDelivered = UNKNOWN;
 bool layout4 = false;
+bool go = false;
+
+#define SPEED 200
+#define HIGHSPEED 255
+
+// SETUP FUNCTION:
+void setup()
+{
+    Serial.begin(9600);
+
+    setupSensors();
+    setupEffectors();
+}
 
 void followLine()
 {   
     if (readLine(1)) {
-        moveLeft(255);
+        moveLeft(SPEED);
     } else if (readLine(2)) {
-        moveRight(255);
+        moveRight(SPEED);
     } else {
-        moveForward(255);
-    }
-    updateLED();
-}
-
-void followLineBackwards()
-{
-    if (readLine(1)) {
-        backLeft(255);
-    } else if (readLine(2)) {
-        backRight(255);
-    } else {
-        moveBackward(255);
+        moveForward(HIGHSPEED);
     }
     updateLED();
 }
@@ -160,20 +149,37 @@ void loop()
             isFlashing = true;
             moveForward(200);
             delay(800);
-            redBlocksMoved = 1;
+            //redBlocksMoved = 1;
+            debugln("start");
         } else {
             moveStop();
             isFlashing = false;
             amberLED(LOW);
         }
-        debug(go);
         delay(200);
     }
-    if (go) // Can move
+    if (!go) // Can't move yet
+    {
+        // if not moving, debug print line followers
+        
+        debug(readLine(1)); debug(", ");
+        debug(readLine(2)); debug(", ");
+        debug(readLine(0)); debug(", ");
+        debug(readLine(3)); debug(", ");
+        debugln(readColour());
+        /*
+        debug(analogRead(A2)); debug(", ");
+        debug(analogRead(A1)); debug(", ");
+        debug(analogRead(A3)); debug(", ");
+        debugln(analogRead(A4));
+         */ 
+    }
+    else // can move
     {   
         debugln(currentTask);
-        switch (currentTask){
-            case FINDINGBLOCKS:
+        int currentTaskCopy = currentTask;
+        switch (currentTaskCopy){
+            case FINDINGBLOCKS: {
                 if (lastBlockDelivered == RED){
                     while (readColour() == UNKNOWN)
                         followLine();
@@ -182,8 +188,8 @@ void loop()
                     if (col == BLUE){
                         // if not layout 2 last blue block
                         if ( !(redBlocksMoved == 1 && blueBlocksDelivered == 1 && lastBlockDelivered == RED)){ 
-                            turnLeft();
-                            moveForward(255);
+                            turnLeft(); // cut across to save time
+                            moveForward(HIGHSPEED);
                             while (!INNER_TWO)
                                 delay(1);
                             if (redBlocksDelivered == 2){ // layout 5
@@ -192,6 +198,13 @@ void loop()
                             else{ // layout 3
                                 turnRight(); // TODO: if angle is fucked do this like the move around clockwise does.
                             }
+                        }
+                        else {
+                          turnRight(); // cut across to save time
+                          moveForward(HIGHSPEED);
+                          while (!INNER_TWO)
+                              delay(1);
+                          turnRight();
                         }
                         currentTask = DELIVERINGBLUE;
                     }
@@ -204,7 +217,12 @@ void loop()
                     // get to t junction
                     while (!BOX_OR_SPLIT)
                         followLine();
-                    moveForward(255);
+                    if (lastBlockDelivered == BLUE){
+                        moveLeft(SPEED);
+                    }
+                    else{
+                        moveForward(SPEED);
+                    }         
                     while (BOX_OR_SPLIT)
                         delay(1);
                     while (!T_FROM_BOTTOM)
@@ -241,25 +259,31 @@ void loop()
                         }
                     }
                     // if fourth block of layout 3 and 1 or third of 2 and 6
-                    else if ((redBlocksMoved == 0 && blueBlocksDelivered == 2)
-                            || (redBlocksMoved == 1 && blueBlocksDelivered == 1 && lastBlockDelivered == BLUE)){
+                    else if ((redBlocksMoved == 0 && blueBlocksDelivered == 2) || (redBlocksMoved == 1 && blueBlocksDelivered == 1 && lastBlockDelivered == BLUE)){
+                        debugln("Yeet");
                         turnLeft();
-                        while (readColour() == UNKNOWN) // follow line until hit block
+                        while (readColour() == UNKNOWN){ // follow line until hit block
                             followLine();
+                        }
                         int col = pickupBlock();
                         if (col == RED){
-                            currentTask == DELIVERINGRED;
+                            currentTask = DELIVERINGRED;
+                            debug("task set to delivering red: ");
+                            debugln(currentTask);
                         }
-                        if (col == BLUE){
+                        else if (col == BLUE){
                             turnAround();
                             currentTask = DELIVERINGBLUE;
                         }
                     }
                 }
+                debug("Task at end of findingblocks: ");
+                debugln(currentTask);
                 break;
+            }
 
-            case DELIVERINGBLUE:
-                DEBUG("Delivering Blue");
+            case DELIVERINGBLUE: {
+                debugln("Delivering Blue");
                 // go to the T junction
                 while (!T_FROM_LEFT && !T_FROM_RIGHT)
                     followLine();
@@ -273,6 +297,10 @@ void loop()
                 // get past J to the right
                 moveRight(200);
                 delay(1000);
+                // keep turning right until mid left sensor sees the line
+                while(!readLine(1)){
+                  delay(1);
+                }
                 // go to Blue delivery area
                 while (!T_FROM_BOTTOM)
                     followLine();
@@ -281,56 +309,64 @@ void loop()
                 while (!BOX_OR_SPLIT)
                     followLine();
                 if (blueBlocksDelivered) {
+                    debugln("delivering blue 2");
+                    moveBackward(200);
+                    delay(100);
                     dropBlock();
                     blueLED(LOW);
                     blueBlocksDelivered += 1;
-                    while (!readLine(0))
-                        followLineBackwards();
+                    debugln("dropped");
                     turnLeft();
+                    if (redBlocksDelivered == 2 || redBlocksMoved){ // either done or theres a red stashed
+                        debugln("Yeet");
+                        moveRight(SPEED);
+                        delay(700);
+                        moveForward(HIGHSPEED);
+                        delay(4000);
+                        if (redBlocksDelivered == 2){
+                            currentTask = RETURNINGHOME;
+                        }
+                        else{
+                            currentTask = COLLECTINGMOVEDRED;
+                        }
+                        lastBlockDelivered = BLUE;
+                        break;                       
+                    }
+                    else{
+                      moveForward(SPEED);
+                      delay(1000);
+                    }
                 } else {
                     moveForward(200);
-                    delay(300);
+                    delay(200);
                     turnRight();
+                    moveForward(SPEED);
+                    delay(600);
                     while (!BOX_OR_SPLIT)
                         followLine();
+                        
                     dropBlock();
                     blueLED(LOW);
-                    blueBlocksDelivered += 1;
+                    blueBlocksDelivered += 1; // delivered
                     while (!BOX_OR_SPLIT)
-                        followLineBackwards();
+                        moveBackward(200);
                     moveBackward(200);
                     delay(470);
                     turnRight();
                     // TODO: Go far enough to get to line before turning right again.
                     moveForward(200);
-                    delay(1400);
+                    delay(1600);
                     while (!readLine(3))
                         followLine();
                     turnRight();
                 }
-                if ((redBlocksDelivered == 2 && blueBlocksDelivered == 2) // all delivered
-                    || (redBlocksMoved == 1 && blueBlocksDelivered == 2)){ // or layouts 2, 4, 6
-                    while (!BOX_OR_SPLIT) // go to j split
-                        followLine();
-                    moveForward(255);
-                    while (BOX_OR_SPLIT) // get past j split
-                        delay(1);
-                    int t_start = millis();
-                    while (millis() < t_start + 500) // move forward for another 0.5 seconds
-                        followLine();
-                    turnAround();
-                    if (redBlocksDelivered == 2){
-                        currentTask == RETURNINGHOME;
-                    }
-                    else{
-                        currentTask == COLLECTINGMOVEDRED;
-                    }
-                }
+                
                 currentTask = FINDINGBLOCKS;
                 lastBlockDelivered = BLUE;
                 break;
+            }
 
-            case MOVINGRED:
+            case MOVINGRED: {
                 // go to the T junction
                 while (!T_FROM_LEFT && !T_FROM_RIGHT)
                     followLine();
@@ -341,27 +377,26 @@ void loop()
                 // go to J junction
                 while (!BOX_OR_SPLIT)
                     followLine();
-                moveForward(255);
+                moveForward(SPEED);
                 while (BOX_OR_SPLIT)  // move forward until past j junction         
                     delay(1);
 
                 long t_start = millis();
-                while (millis() < t_start + 8000) // follow line for two seconds
+                while (millis() < t_start + 11000) // follow line for two seconds
                     followLine();
                 // drop block
                 openGrabbers();
                 redLED(LOW);
                 redBlocksMoved += 1;
                 t_start = millis();
-                moveBackward(255
-                );
+                moveBackward(SPEED);
                 delay(2000);
                 turnAround();
                 currentTask = FINDINGBLOCKS;
                 break;
-            
+            }
 
-            case DELIVERINGRED:
+            case DELIVERINGRED: {
                 debugln("delivering red");
                 while (!BOX_OR_SPLIT)
                     followLine();
@@ -370,26 +405,35 @@ void loop()
                 redBlocksDelivered += 1;
                 
                 if (redBlocksDelivered == 2 && blueBlocksDelivered == 2){
-                    if (lastBlockDelivered == RED && redBlocksMoved == 0)
+                    if (lastBlockDelivered == RED && redBlocksMoved == 0){
                         moveAroundClockwise();
+                    }
                     else if (lastBlockDelivered == RED && redBlocksMoved == 1){
                         moveAroundAntiClockwise();
                     }
-                    else
+                    else{
                         turnAround();
+                    }
+                    // go to the T junction
+                    while (!T_FROM_LEFT && !T_FROM_RIGHT)
+                        followLine();
+                    if (T_FROM_RIGHT)
+                        turnLeft();
+                    else
+                        turnRight();
+                    // go to J junction
+                    while (!BOX_OR_SPLIT)
+                        followLine();
+                    moveForward(SPEED);
+                    while (BOX_OR_SPLIT)  // move forward until past j junction         
+                        delay(1);
                     currentTask = RETURNINGHOME;
                     break;
                 }
-                else if (blueBlocksDelivered == 2 && redBlocksMoved == 0){
-                    moveAroundClockwise();
-                }
-                else if (blueBlocksDelivered == 2 && redBlocksMoved == 1){
+                else if ((blueBlocksDelivered == 0 || blueBlocksDelivered == 2) && redBlocksMoved == 1){ // layout 4 bottom right red
                     moveAroundAntiClockwise();
                 }
-                else if (blueBlocksDelivered == 0 && redBlocksMoved == 1){ // layout 4 bottom right red
-                    moveAroundAntiClockwise();
-                }
-                if (redBlocksMoved){ // layout 2 top left red
+                else if (redBlocksMoved || (blueBlocksDelivered == 2 && redBlocksMoved == 0)){ // layout 2 top left red
                     moveAroundClockwise();
                 }
                 else{
@@ -398,26 +442,12 @@ void loop()
                 currentTask = FINDINGBLOCKS;
                 lastBlockDelivered = RED;
                 break;
+            }
 
-            case RETURNINGHOME:
-                // go to the T junction
-                while (!T_FROM_LEFT && !T_FROM_RIGHT && !BOX_OR_SPLIT)
-                    followLine();
-                if (!BOX_OR_SPLIT){
-                    if (T_FROM_RIGHT)
-                        turnLeft();
-                    else
-                        turnRight();
-                    // go to J junction
-                    while (!BOX_OR_SPLIT)
-                        followLine();   
-                }
-                moveForward(255);
-                while (BOX_OR_SPLIT)  // move forward until past j junction         
-                    delay(1);
+            case RETURNINGHOME: {
                 while (!T_FROM_BOTTOM)
                     followLine();
-                moveForward(255);
+                moveForward(SPEED);
                 delay(1000);
                 turnAround();
                 moveStop();
@@ -426,65 +456,41 @@ void loop()
                 amberLED(LOW);
                 currentTask = DONE;
                 break;
+            }
 
-            case COLLECTINGMOVEDRED:
-                // go to split junction
-                while (!BOX_OR_SPLIT)
-                    followLine();   
-                moveForward(255);
-                while (BOX_OR_SPLIT)  // move forward until past j junction         
-                    delay(1);
-                while (readColour() == UNKNOWN)
-                    followLine();
+            case COLLECTINGMOVEDRED: {
+                // go to block
+                while (readColour() == UNKNOWN){
+                   followLine();
+                }
                 // pick up red block
                 int col = pickupBlock();
                 if (col == RED){
-                    turnAround();
-                    while (!BOX_OR_SPLIT)
-                        followLine();
-                    moveForward(255);
-                    while (BOX_OR_SPLIT)
-                        delay(1);
-                    while (!T_FROM_BOTTOM)
-                        followLine();
-                    if (layout4)
-                        turnLeft();
-                    else
-                        turnRight();
-                    currentTask == DELIVERINGRED;
+                    debugln("Picking up stored red");
                 }
-
+                else{
+                    debugln("BLOCK WRONG COLOUR!");
+                }
+                turnAround();
+                while (!BOX_OR_SPLIT)
+                    followLine();
+                moveForward(SPEED);
+                while (BOX_OR_SPLIT)
+                    delay(1);
+                while (!T_FROM_BOTTOM)
+                    followLine();
+                if (layout4)
+                    turnLeft();
+                else
+                    turnRight();
+                currentTask = DELIVERINGRED;
                 break;
-            default:
-                debugln("defaulted");
-        }
+            }
 
-    } else // if not moving, debug print line followers
-    {
-        /*
-        debug(analogRead(A2));
-        debug(", ");
-        debug(analogRead(A1));
-        debug(", ");
-        debug(analogRead(A3));
-        debug(", ");
-        debugln(analogRead(A4));
-        */
-        //readColour();
-        
-        debug(readLine(1));
-        debug(", ");
-        debug(readLine(2));
-        debug(", ");
-        debug(readLine(0));
-        debug(", ");
-        debug(readLine(3));
-        debug(", ");
-        debugln(readColour());
-        /*
-        debug("distance: ");
-        debugln(readDist(10));
-        delay(20);
-        */
-    }
+            default: {
+                debugln("defaulted");
+                break;
+            }
+        }
+    } 
 }
