@@ -1,10 +1,3 @@
-/** TODO
- * - check if blue extra forward movement is needed.
- * - if angle is fucked on blue skip do this like the move around clockwise does.
- * - second blue delivery reliability
- * - left red retrieval
- */
-
 
 #ifdef VSCODE
 #include <Effetors.ino>
@@ -112,7 +105,7 @@ void followLine()
 
 void dropBlock()
 {
-    //sequence for dropping a block onto a deliver zone/at start
+    //sequence for dropping a block onto a delivery zone/at start
     moveStop();
     moveBackward(200);
     delay(400);
@@ -147,7 +140,7 @@ int pickupBlock()
 
 void loop()
 {
-    if (readGo()) // If go buttong pressed
+    if (readGo()) // If go button pressed
     {
         go = !go;
         if (go) {
@@ -265,7 +258,7 @@ void loop()
                     }
                     // if fourth block of layout 3 and 1 or third of 2 and 6
                     else if ((redBlocksMoved == 0 && blueBlocksDelivered == 2) || (redBlocksMoved == 1 && blueBlocksDelivered == 1 && lastBlockDelivered == BLUE)){
-                        debugln("Yeet");
+                        debugln("debug");
                         turnLeft();
                         while (readColour() == UNKNOWN){ // follow line until hit block
                             followLine();
