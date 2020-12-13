@@ -96,11 +96,15 @@ void setup()
 
 void followLine()
 {   
+    //code to follow line
     if (readLine(1)) {
+        //if too far right turn left until inner left follower no longer detects line
         moveLeft(SPEED);
     } else if (readLine(2)) {
+        //if too far left turn right until inner right follower no longer detects line
         moveRight(SPEED);
     } else {
+        // if line within the 2 inner line followers then keep moving straight
         moveForward(HIGHSPEED);
     }
     updateLED();
@@ -108,6 +112,7 @@ void followLine()
 
 void dropBlock()
 {
+    //sequence for dropping a block onto a deliver zone/at start
     moveStop();
     moveBackward(200);
     delay(400);
@@ -196,7 +201,7 @@ void loop()
                                 turnLeft();
                             }
                             else{ // layout 3
-                                turnRight(); // TODO: if angle is fucked do this like the move around clockwise does.
+                                turnRight(); 
                             }
                         }
                         else {
@@ -318,7 +323,6 @@ void loop()
                     debugln("dropped");
                     turnLeft();
                     if (redBlocksDelivered == 2 || redBlocksMoved){ // either done or theres a red stashed
-                        debugln("Yeet");
                         moveRight(SPEED);
                         delay(700);
                         moveForward(HIGHSPEED);
@@ -353,7 +357,6 @@ void loop()
                     moveBackward(200);
                     delay(470);
                     turnRight();
-                    // TODO: Go far enough to get to line before turning right again.
                     moveForward(200);
                     delay(1600);
                     while (!readLine(3))
